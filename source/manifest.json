@@ -15,9 +15,8 @@
 
   "permissions": [
     "bookmarks",
-    "tabs",
     "activeTab",
-    "storage",
+    "tabs",
     "http://*/*",
     "https://*/*"
   ],
