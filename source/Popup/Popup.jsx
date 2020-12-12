@@ -3,6 +3,7 @@ import CategoryItem from './CategoryItem'
 import Pinyin from 'tiny-pinyin'
 import Fuse from 'fuse.js'
 import browser from 'webextension-polyfill';
+import _ from 'lodash';
 
 import './styles.scss';
 
@@ -75,13 +76,6 @@ function getCurrentUrlData(callbackFn) {
 }
 
 
-function resetUi() {
-
-  wrapper.innerHTML = "";
-
-};
-
-
 function focusItem(index) {
 
   if (focusedElement) focusedElement.classList.remove("focus");
@@ -120,15 +114,17 @@ class Popup extends React.Component {
       categoryNodes: []
     }
   }
+
+  onInputChange = (e) => {
+    this.delayedFilter(e);
+  }
   onRejected = (error) => {
     alert(error)
   }
-  componentDidMount(){
-    console.log('mounted ---------')
-  
+
+  resetcategoryNodes(){
     const { options, isSupportPinyin } = this.state
     browser.bookmarks.getTree().then(bookmarkItems => {
-
       const categoryNodes = filterRecursively(bookmarkItems, "children", function(node) {
         return !node.url && node.id > 0;
       }).sort(function(a, b) {
@@ -158,13 +154,27 @@ class Popup extends React.Component {
       })
     }, this.onRejected)
   }
+  componentDidMount(){
+    this.delayedFilter = _.debounce( event => {
+      const text = event.target.value
+      if(text && text.length > 0){
+        const filteredNodes = this.state.fuzzySearch.search(event.target.value).map(x => x.item);
+        this.setState({categoryNodes: filteredNodes})
+      } else {
+        this.resetcategoryNodes()
+      }
+    }, 300);
+
+    // TODO remember last filter?
+    this.resetcategoryNodes()
+  }
 
   render(){
     const { categoryNodes } = this.state
     console.log('categoryNodes', categoryNodes.length)
     return (
       <section id="popup">
-        <input id="search" placeholder="Filter..."></input>
+        <input id="search" placeholder="Filter..." onChange={this.onInputChange}></input>
         <div id="wrapper">
           {categoryNodes.map(node => <CategoryItem node={node} key={node.id}/> )}
         </div>
