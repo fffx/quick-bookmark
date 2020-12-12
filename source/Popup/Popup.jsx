@@ -33,7 +33,8 @@ class Popup extends React.Component {
         threshold: 0.1
       },
       isSupportPinyin: isSupportPinyin,
-      categoryNodes: []
+      categoryNodes: [],
+      cursor: 0
     }
   }
 
@@ -42,6 +43,21 @@ class Popup extends React.Component {
   }
   onRejected = (error) => {
     alert(error)
+  }
+
+  // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
+  onKeydown = (e) => {
+    const { cursor, categoryNodes } = this.state
+    // arrow up/down button should select next/previous list element
+    if (e.key === "ArrowUp" && cursor > 0) {
+      this.setState( prevState => ({
+        cursor: prevState.cursor - 1
+      }))
+    } else if (e.key === "ArrowDown" && cursor < categoryNodes.length - 1) {
+      this.setState( prevState => ({
+        cursor: prevState.cursor + 1
+      }))
+    }
   }
 
   resetcategoryNodes(){
@@ -102,14 +118,14 @@ class Popup extends React.Component {
   }
 
   render(){
-    const { categoryNodes } = this.state
+    const { categoryNodes, cursor } = this.state
     // const filterInputValue = this.filterInput ? this.filterInput.value : ''
     // console.log('categoryNodes', categoryNodes.length)
     return (
       <section id="popup">
-        <input id="search" ref={this.filterInput} placeholder="Filter..." onChange={this.onInputChange} autoFocus={true}></input>
-        <div id="wrapper" style={{minWidth: '25px'}}>
-          {categoryNodes.map(node => <CategoryItem node={node} key={node.id}/> )}
+        <input id="search" ref={this.filterInput} placeholder="Filter..." onKeyDown={this.onKeydown} onChange={this.onInputChange} autoFocus={true}></input>
+        <div id="wrapper" style={{minWidth: '150px'}}>
+          {categoryNodes.map( (node, index) => <CategoryItem node={node} key={node.id} focused={cursor === index} /> )}
         </div>
       </section>
     );

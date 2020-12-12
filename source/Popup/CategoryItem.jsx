@@ -4,6 +4,8 @@ const SEPARATOR = ' / '
 export default class CategoryItem extends React.Component {
     constructor(props){
         super(props)
+        this.categoryItemRef = React.createRef();
+
         this.state = {
             active: false
         }
@@ -41,14 +43,29 @@ export default class CategoryItem extends React.Component {
         });
       
     }
+
+    componentDidMount(){
+       this.props.focused && this.categoryItemRef.current.scrollIntoView()
+    }
+
     render(){
-        const node = this.props.node
+        const { node, focused} = this.props
         const { id } = node
         const count = node.children.length
         const title = node.titlePrefix ? node.titlePrefix + SEPARATOR + node.title : node.title;
 
-        return (<span data-id={id} data-count={count} data-title={title} onClick={this.clickHandler}>
-            {title}
-        </span>)
+        // TODO hove show Delete, Rename, Move
+        return (<React.Fragment>
+            <span 
+                ref={this.categoryItemRef}
+                data-id={id}
+                data-count={count} 
+                data-title={title}
+                className={`${focused && 'focus'}`}
+                style={{paddingRight: '30px'}}
+                onClick={this.clickHandler}>
+                {title} ({count})
+            </span>
+        </React.Fragment>)
     }
 }
