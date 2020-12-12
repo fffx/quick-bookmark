@@ -1,5 +1,7 @@
 import * as React from 'react';
-import Item from './Item'
+import CategoryItem from './CategoryItem'
+import Pinyin from 'tiny-pinyin'
+import Fuse from 'fuse.js'
 import browser from 'webextension-polyfill';
 
 import './styles.scss';
@@ -72,20 +74,6 @@ function getCurrentUrlData(callbackFn) {
 
 }
 
-function createUiFromNodes( categoryNodes ) {
-
-  var categoryUiElements = [];
-  currentNodeCount = categoryNodes.length;
-
-  categoryNodes.forEach( function( node ) {
-    categoryUiElements.push( createUiElement(node) );
-  })
-
-  categoryUiElements.forEach( function( element ) {
-    wrapper.appendChild( element );
-  });
-
-};
 
 function resetUi() {
 
@@ -117,75 +105,73 @@ function addCreateCategoryButton(categoryName) {
 
 }
 
-function addCreateCategoryButton(categoryName) {
 
-  var el = document.createElement("span");
-  el.setAttribute("data-id", "NEW");
-  el.setAttribute("data-title", categoryName);
-  el.classList.add("create");
-  el.innerHTML = browser.i18n.getMessage("new") + ": " + categoryName;
 
-  wrapper.appendChild(el);
-  currentNodeCount = currentNodeCount + 1;
-
-}
-
-function createInitialTree() {
-
-  browser.bookmarks.getTree( function(t) {
-
-    wrapper = document.getElementById("wrapper");
-
-    var options = {
-      keys: ['pinyinTitle', 'firstLetter'],
-      threshold: 0.1
+class Popup extends React.Component {
+  constructor(props){
+    super(props)
+    const isSupportPinyin =  Pinyin.isSupported()
+    this.state = {
+      options: {
+        keys: isSupportPinyin ? ['pinyinTitle', 'firstLetter'] : ['title'],
+        threshold: 0.1
+      },
+      isSupportPinyin: isSupportPinyin,
+      categoryNodes: []
     }
-    
-    categoryNodes = filterRecursively(t, "children", function(node) {
-      return !node.url && node.id > 0;
-    }).sort(function(a, b) {
-      return b.dateGroupModified - a.dateGroupModified;
-    })
+  }
+  onRejected = (error) => {
+    alert(error)
+  }
+  componentDidMount(){
+    console.log('mounted ---------')
+  
+    const { options, isSupportPinyin } = this.state
+    browser.bookmarks.getTree().then(bookmarkItems => {
 
-    createUiFromNodes( categoryNodes );
+      const categoryNodes = filterRecursively(bookmarkItems, "children", function(node) {
+        return !node.url && node.id > 0;
+      }).sort(function(a, b) {
+        return b.dateGroupModified - a.dateGroupModified;
+      })
+            
+      // wrapper.style.width = wrapper.clientWidth + "px";
+      let categoryNodesWithPinyin = null
+      if(isSupportPinyin){
+        categoryNodesWithPinyin = categoryNodes.map( x => {
+          // TODO 汉字拼音用空格分开，让模糊搜索更好， 但是这样英语单词也会被分开
+          if(x.title.match(/[\u3400-\u9FBF]/)){
+            // console.log(x.title)
+            x.pinyinTitle = Pinyin.convertToPinyin(x.title, ' ', true)
+          } else {
+            x.pinyinTitle = x.title
+          }
+          x.firstLetter = x.pinyinTitle.match(/\b\w/g).join('')
+          // console.log(x.pinyinTitle)
+          return x;
+        });
+      }
 
-    wrapper.style.width = wrapper.clientWidth + "px";
+      this.setState({
+        categoryNodes: categoryNodes,
+        fuzzySearch: new Fuse(categoryNodesWithPinyin || categoryNodes, options)
+      })
+    }, this.onRejected)
+  }
 
-    if (currentNodeCount > 0) focusItem(0);
-
-    if(Pinyin.isSupported()){
-      categoryNodes = categoryNodes.map( x => {
-        // TODO 汉字拼音用空格分开，让模糊搜索更好， 但是这样英语单词也会被分开
-        if(x.title.match(/[\u3400-\u9FBF]/)){
-          // console.log(x.title)
-          x.pinyinTitle = Pinyin.convertToPinyin(x.title, ' ', true)
-        } else {
-          x.pinyinTitle = x.title
-        }
-        x.firstLetter = x.pinyinTitle.match(/\b\w/g).join('')
-        // console.log(x.pinyinTitle)
-        return x;
-      });
-    }
-    fuzzySearch = new Fuse(categoryNodes, options);
-
-    wrapper.addEventListener("click", function(e) {
-      triggerClick(e.target);
-    })
-
-  });
-
+  render(){
+    const { categoryNodes } = this.state
+    console.log('categoryNodes', categoryNodes.length)
+    return (
+      <section id="popup">
+        <input id="search" placeholder="Filter..."></input>
+        <div id="wrapper">
+          {categoryNodes.map(node => <CategoryItem node={node} key={node.id}/> )}
+        </div>
+      </section>
+    );
+  }
 }
-const Popup = () => {
-  return (
-    <section id="popup">
-      <input id="search" placeholder="Filter..."></input>
-      <div id="wrapper">
-
-      </div>
-    </section>
-  );
-};
 
 // TOOD
 /*

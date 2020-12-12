@@ -1,8 +1,9 @@
 import * as React from 'react';
 import browser from 'webextension-polyfill';
 const SEPARATOR = ' / '
-export default class Item extends React.Component {
+export default class CategoryItem extends React.Component {
     constructor(props){
+        super(props)
         this.state = {
             active: false
         }
