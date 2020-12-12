@@ -21,89 +21,11 @@ const filterRecursively = (nodeArray, childrenProperty, filterFn, results, title
   return results;
 
 };
-function triggerClick(element) {
-
-  var categoryId = element.getAttribute("data-id");
-  var newCategoryTitle;
-
-  if (categoryId == "NEW") {
-
-    newCategoryTitle = element.getAttribute("data-title");
-
-    browser.bookmarks.create({
-      title: newCategoryTitle
-    }, function(res) {
-      processBookmark(res.id);
-    })
-
-  } else {
-
-    processBookmark(categoryId);
-
-  }
-
-}
-const createUiElement = (node) => <Item node={node}/>
-
-function processBookmark(categoryId) {
-
-  getCurrentUrlData(function(url, title) {
-
-    if (title && categoryId && url) {
-      addBookmarkToCategory(categoryId, title, url);
-      window.close();
-    }
-
-  });
-
-}
-
-function addBookmarkToCategory(categoryId, title, url) {
-
-  browser.bookmarks.create({
-    'parentId': categoryId,
-    'title': title,
-    'url': url
-  });
-
-}
-function getCurrentUrlData(callbackFn) {
-
-  browser.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-    callbackFn(tabs[0].url, tabs[0].title)
-  });
-
-}
-
-
-function focusItem(index) {
-
-  if (focusedElement) focusedElement.classList.remove("focus");
-  focusedElement = wrapper.childNodes[index];
-  focusedElement.classList.add("focus");
-
-  focusedElement.scrollIntoView(false);
-
-}
-
-function addCreateCategoryButton(categoryName) {
-
-  var el = document.createElement("span");
-  el.setAttribute("data-id", "NEW");
-  el.setAttribute("data-title", categoryName);
-  el.classList.add("create");
-  el.innerHTML = browser.i18n.getMessage("new") + ": " + categoryName;
-
-  wrapper.appendChild(el);
-  currentNodeCount = currentNodeCount + 1;
-
-}
-
-
-
 class Popup extends React.Component {
   constructor(props){
     super(props)
+
+    this.filterInput = React.createRef();
     const isSupportPinyin =  Pinyin.isSupported()
     this.state = {
       options: {
@@ -159,7 +81,17 @@ class Popup extends React.Component {
       const text = event.target.value
       if(text && text.length > 0){
         const filteredNodes = this.state.fuzzySearch.search(event.target.value).map(x => x.item);
-        this.setState({categoryNodes: filteredNodes})
+        if( filteredNodes.length === 0){
+          const newBtn = {
+            title: `New: ${text}`,
+            id: 'NEW',
+            children: []
+          }
+          this.setState({categoryNodes: [newBtn]})
+        }else {
+          this.setState({categoryNodes: filteredNodes})
+        }
+        
       } else {
         this.resetcategoryNodes()
       }
@@ -171,11 +103,12 @@ class Popup extends React.Component {
 
   render(){
     const { categoryNodes } = this.state
-    console.log('categoryNodes', categoryNodes.length)
+    // const filterInputValue = this.filterInput ? this.filterInput.value : ''
+    // console.log('categoryNodes', categoryNodes.length)
     return (
       <section id="popup">
-        <input id="search" placeholder="Filter..." onChange={this.onInputChange}></input>
-        <div id="wrapper">
+        <input id="search" ref={this.filterInput} placeholder="Filter..." onChange={this.onInputChange} autoFocus={true}></input>
+        <div id="wrapper" style={{minWidth: '25px'}}>
           {categoryNodes.map(node => <CategoryItem node={node} key={node.id}/> )}
         </div>
       </section>
