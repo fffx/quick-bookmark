@@ -6,6 +6,7 @@
 
 body {
   color: #333;
+  transition: width 1s ease-in-out;
 }
 
 input {
@@ -53,7 +54,7 @@ section{
 }
 
 #wrapper {
-  min-width: 60px;
+  min-width: 150px;
   text-align: right;
   padding-top: 30px;
 }

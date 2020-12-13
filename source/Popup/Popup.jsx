@@ -104,6 +104,7 @@ class Popup extends React.Component {
             if (text && text.length > 0) {
                 const results = this.state.fuzzySearch.search(text)
                 const filteredNodes = results.map(x => x.item);
+                let newCursor = 0
                 // console.log(`best score: ${results[0]?.score}`)
                 if (filteredNodes.length === 0 || !filteredNodes[0].title.includes(text)) {
                     const newBtn = {
@@ -111,10 +112,11 @@ class Popup extends React.Component {
                         id: 'NEW',
                         children: []
                     }
+                    if(filteredNodes.length > 0) newCursor += 1
                     console.log("Not found ...", text)
-                    this.setState({ categoryNodes: [newBtn, ...filteredNodes] })
+                    this.setState({ categoryNodes: [newBtn, ...filteredNodes], cursor: newCursor })
                 } else {
-                    this.setState({ categoryNodes: filteredNodes })
+                    this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
                 }
 
             } else {
@@ -144,7 +146,7 @@ class Popup extends React.Component {
                     onChange={this.onInputChange} 
                     style={{position: 'fixed'}}
                     autoFocus={true}></input>
-                <div id="wrapper" style={{ minWidth: '150px' }}>
+                <div id="wrapper">
                     {categoryNodes.map((node, index) => {
                         return(<CategoryItem
                             node={node} key={node.id}
