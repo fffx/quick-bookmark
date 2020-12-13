@@ -44,10 +44,10 @@ export default class CategoryItem extends React.Component {
     scrollIntoView = () => {
         this.props.focused && this.categoryItemRef.current.scrollIntoView(false)
     }
+
     componentDidMount(){
         this.scrollIntoView()
     }
-
 
     componentDidUpdate(){
         this.scrollIntoView()

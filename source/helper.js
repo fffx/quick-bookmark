@@ -10,6 +10,8 @@ export function debounce(func, wait = 200) {
     };
 }
 
+
+// TODO change this to promise
 export const getCurrentUrlData = (callbackFn) => {
     browser.tabs.query({'active': true, 'currentWindow': true}).then((tabs) => {
       callbackFn(tabs[0].url, tabs[0].title)

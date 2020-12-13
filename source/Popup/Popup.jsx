@@ -42,6 +42,17 @@ class Popup extends React.Component {
         }
     }
 
+    removeCurrentTab(){
+        helper.getCurrentUrlData((url, _title) => {
+            const currendNode = this.focusedCategoryItem?.current.props.node.children.find(x => x.url === url )
+            if(!currendNode) return
+
+            browser.bookmarks.remove(currendNode.id).then( () => {
+                this.resetcategoryNodes()
+            })
+        })
+    }
+
     onInputChange = (e) => {
         this.delayedFilter(e);
     }
@@ -61,14 +72,16 @@ class Popup extends React.Component {
             this.setState(prevState => ({
                 cursor: cursor < categoryNodes.length - 1 ? prevState.cursor + 1 : 0
             }))
-        } else if(e.key === 'Enter'){
-            console.log('---------------', this.focusedCategoryItem.current)
+        } else if(e.key === 'Enter') {
+            // console.log('---------------', this.focusedCategoryItem.current)
             this.focusedCategoryItem.current.categoryItemRef.current.click();
+        } else if(e.key === 'Delete' && this.focusedCategoryItem.current) {
+            this.removeCurrentTab()
         }
     }
 
     resetcategoryNodes() {
-        const { fuseOptions, isSupportPinyin } = this.state
+        const { fuseOptions, isSupportPinyin, cursor } = this.state
         browser.bookmarks.getTree().then(bookmarkItems => {
             const categoryNodes = filterRecursively(bookmarkItems, "children", function (node) {
                 return !node.url && node.id > 0;
@@ -94,6 +107,7 @@ class Popup extends React.Component {
 
             this.setState({
                 categoryNodes: categoryNodes,
+                cursor: categoryNodes.length > cursor ? cursor : 0,
                 fuzzySearch: new Fuse(categoryNodesWithPinyin || categoryNodes, fuseOptions)
             })
         }, this.onRejected)
