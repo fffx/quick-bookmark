@@ -127,6 +127,11 @@ class Popup extends React.Component {
         // TODO remember last filter?
         this.resetcategoryNodes()
 
+        browser.windows.onFocusChanged.addListener(() => {
+            // console.log('focus--------------------')
+            // TODO this not working
+            this.filterInput.current.focus()
+        })
 
         helper.getCurrentUrlData( (url, title) => {
             this.setState({currentActiveTab: {url: url, title: title}})
@@ -141,7 +146,7 @@ class Popup extends React.Component {
             <section id="popup">
                 <input
                     id="search" ref={this.filterInput}
-                    placeholder="Filter..."
+                    placeholder="Filter ..."
                     onKeyDown={this.onKeydown} 
                     onChange={this.onInputChange} 
                     style={{position: 'fixed'}}
