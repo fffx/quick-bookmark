@@ -16,9 +16,7 @@
   "permissions": [
     "bookmarks",
     "activeTab",
-    "tabs",
-    "http://*/*",
-    "https://*/*"
+    "tabs"
   ],
 
   "content_security_policy": "script-src 'self'; object-src 'self'",
@@ -50,13 +48,6 @@
     "__firefox__browser_style": false
   },
 
-  "__chrome|opera__options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true,
-    "__chrome__chrome_style": false
-  },
-
   "background": {
     "scripts": [
       "js/background.bundle.js"
@@ -75,15 +66,5 @@
         "linux": "Ctrl+B"
       }
     }
-  },
-
-  "content_scripts": [{
-    "matches": [
-      "http://*/*",
-      "https://*/*"
-    ],
-    "js": [
-      "js/contentScript.bundle.js"
-    ]
-  }]
+  }
 }
