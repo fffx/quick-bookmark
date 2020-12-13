@@ -1,5 +1,6 @@
 import * as React from 'react';
 import browser from 'webextension-polyfill';
+import * as helper from '../helper';
 const SEPARATOR = ' / '
 export default class CategoryItem extends React.Component {
     constructor(props){
@@ -25,14 +26,10 @@ export default class CategoryItem extends React.Component {
           this.processBookmark(categoryId);
         } 
     }
-    getCurrentUrlData = (callbackFn) => {
-        browser.tabs.query({'active': true, 'currentWindow': true}).then((tabs) => {
-          callbackFn(tabs[0].url, tabs[0].title)
-        });
-    }
+
 
     processBookmark = (categoryId) => {
-        this.getCurrentUrlData((url, title) => {
+        helper.getCurrentUrlData((url, title) => {
           if (title && categoryId && url) {
             browser.bookmarks.create({
                 'parentId': categoryId,
@@ -44,12 +41,26 @@ export default class CategoryItem extends React.Component {
       
     }
 
+    scrollIntoView = () => {
+        this.props.focused && this.categoryItemRef.current.scrollIntoView(false)
+    }
     componentDidMount(){
-       this.props.focused && this.categoryItemRef.current.scrollIntoView()
+        this.scrollIntoView()
     }
 
+
+    componentDidUpdate(){
+        this.scrollIntoView()
+    }
+
+
+
+    // static getDerivedStateFromProps(props, state) {
+        
+    // }
+
     render(){
-        const { node, focused} = this.props
+        const { node, focused, containsCurrentTab} = this.props
         const { id } = node
         const count = node.children.length
         const title = node.titlePrefix ? node.titlePrefix + SEPARATOR + node.title : node.title;
@@ -61,10 +72,9 @@ export default class CategoryItem extends React.Component {
                 data-id={id}
                 data-count={count} 
                 data-title={title}
-                className={`${focused && 'focus'}`}
-                style={{paddingRight: '30px'}}
+                className={`${focused && 'focus'} ${containsCurrentTab && 'containsCurrentTab'}`}
                 onClick={this.clickHandler}>
-                {title} ({count})
+                {id === 'NEW' && 'New: '} {title} {id === 'NEW' ? '' : ` (${count})`}
             </span>
         </React.Fragment>)
     }
