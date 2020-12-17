@@ -1,16 +1,13 @@
 Quick Bookmark
 ======================
 
-Chrome Extension that lets you easily add bookmarks to any category. Includes spotlight-like search with mouse/keyboard support.
-
-WebStore URL:
+Web browser extension that lets you easily add bookmarks to any category. Includes spotlight-like search with mouse/keyboard support.
+Also support Chinese pinyin.
 
 key binding
 ===========
+Default keybinding is `ctrl + B` or `command + B` for Mac OS users
 [Chrome extensions shortcuts](chrome://extensions/shortcuts)
 
-TODO
-====
 
- - options (font size and style, focus style, key bindings, sorting options)
- - TBD: icon should be greyed out by default, highlighted if the page is already bookmarked
+**Inspired by** [chrome-better-bookmark](https://github.com/ardcore/chrome-better-bookmark)
