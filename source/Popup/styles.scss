@@ -26,8 +26,8 @@ section{
     margin-bottom: 10px;
   }
 
-  .containsCurrentTab{
-    text-decoration: underline;
+  .contains-current-tab{
+    // text-decoration: underline;
     font-weight: bold;
   }
   #wrapper {
@@ -60,6 +60,7 @@ section{
       &.create {
         margin-top: 10px;
         border-top: 1px solid #eee;
+        text-decoration: underline;
         white-space: normal;
       }
     }

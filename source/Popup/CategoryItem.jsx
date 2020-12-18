@@ -58,12 +58,22 @@ export default class CategoryItem extends React.Component {
     // static getDerivedStateFromProps(props, state) {
         
     // }
-
     render(){
         const { node, focused, containsCurrentTab} = this.props
         const { id } = node
         const count = node.children.length
         const title = node.titlePrefix ? node.titlePrefix + SEPARATOR + node.title : node.title;
+        let classNames = []
+        if(focused){
+            classNames.push('focus')
+        }
+        if(id === 'NEW') {
+            classNames.push('create')
+        }
+
+        if(containsCurrentTab){
+            classNames.push('contains-current-tab')
+        }
 
         // TODO hove show Delete, Rename, Move
         return (<React.Fragment>
@@ -72,7 +82,7 @@ export default class CategoryItem extends React.Component {
                 data-id={id}
                 data-count={count} 
                 data-title={title}
-                className={`${focused && 'focus'} ${containsCurrentTab && 'containsCurrentTab'}`}
+                className={classNames.join(' ')}
                 onClick={this.clickHandler}>
                 {id === 'NEW' && 'New: '} {title} {id === 'NEW' ? '' : ` (${count})`}
             </span>
