@@ -121,7 +121,7 @@ class Popup extends React.Component {
                 const filteredNodes = results.map(x => x.item);
                 let newCursor = 0
                 // console.log(`best score: ${results[0]?.score}`)
-                if (filteredNodes.length === 0 || !filteredNodes[0].title.includes(text)) {
+                if (filteredNodes.length === 0 || !filteredNodes[0].title != text) {
                     const newBtn = {
                         title: text,
                         id: 'NEW',
