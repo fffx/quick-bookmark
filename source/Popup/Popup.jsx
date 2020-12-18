@@ -149,6 +149,7 @@ class Popup extends React.Component {
         })
 
         helper.getCurrentUrlData( (url, title) => {
+            // console.log('set currentActiveTab', url)
             this.setState({currentActiveTab: {url: url, title: title}})
         })
     }

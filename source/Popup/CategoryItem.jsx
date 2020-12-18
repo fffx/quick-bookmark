@@ -8,6 +8,7 @@ export default class CategoryItem extends React.Component {
         this.categoryItemRef = React.createRef();
 
         this.state = {
+            containsCurrentTab: false,
             active: false
         }
     }
@@ -42,25 +43,28 @@ export default class CategoryItem extends React.Component {
     }
 
     scrollIntoView = () => {
-        this.props.focused && this.categoryItemRef.current.scrollIntoView(false)
+        this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
     }
 
     componentDidMount(){
-        this.scrollIntoView(true)
-        if(this.props.currentActiveTab && this.props.node.children.find( x => x.url === this.props.currentActiveTab.url)){
-            this.setState({containsCurrentTab: true})
-        }
+        this.scrollIntoView()
     }
 
     componentDidUpdate(){
-        this.scrollIntoView(true)
+        this.scrollIntoView()
     }
 
 
 
-    // static getDerivedStateFromProps(props, state) {
-        
-    // }
+    static getDerivedStateFromProps(props, state) {
+        const { currentActiveTab}  = props
+        if(currentActiveTab && props.node.children.find( x => x.url === currentActiveTab.url)){
+            return {containsCurrentTab: true}
+        }
+        return null
+    }
+
+
     render(){
         const { node, focused} = this.props
         const { containsCurrentTab } = this.state
