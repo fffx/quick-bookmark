@@ -38,7 +38,8 @@ class Popup extends React.Component {
             isSupportPinyin: isSupportPinyin,
             categoryNodes: [],
             currentActiveTab: null,
-            cursor: 0
+            cursor: 0,
+            resorted: false, // resort after child check conatains current tab
         }
     }
 
@@ -58,6 +59,27 @@ class Popup extends React.Component {
     }
     onRejected = (error) => {
         alert(error)
+    }
+    updateCategoryNode = (index, newNodeProps) =>{
+        // Yeah update categoryNodes directly, 
+        console.log('update category node', index, newNodeProps)
+        this.state.categoryNodes[index] = Object.assign(this.state.categoryNodes[index], newNodeProps)
+    }
+
+    resortCategoryNodes = () => {
+        const {categoryNodes} = this.state
+        this.setState({
+            resorted: true,
+            categoryNodes: categoryNodes.sort( (a, b) => {
+                if(a.containsCurrentTab && !b.containsCurrentTab){
+                    return -1
+                } else if(b.containsCurrentTab && !a.containsCurrentTab){
+                    return 1
+                } else {
+                    return b.dateGroupModified - a.dateGroupModified;
+                }
+            })
+        })
     }
 
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
@@ -155,7 +177,7 @@ class Popup extends React.Component {
     }
 
     render() {
-        const { categoryNodes, cursor, currentActiveTab } = this.state
+        const { categoryNodes, cursor, currentActiveTab, resorted } = this.state
         // const filterInputValue = this.filterInput ? this.filterInput.value : ''
         // console.log('categoryNodes', categoryNodes.length)
         return (
@@ -172,6 +194,11 @@ class Popup extends React.Component {
                             node={node} key={node.id}
                             focused={cursor === index}
                             currentActiveTab={currentActiveTab}
+                            updateCategoryNode={this.updateCategoryNode}
+                            resortCategoryNodes={this.resortCategoryNodes}
+                            isLast={categoryNodes.length - 1 === index}
+                            index={index}
+                            resorted={resorted}
                             ref={cursor === index ? this.focusedCategoryItem : null}
                         />)
                     })}

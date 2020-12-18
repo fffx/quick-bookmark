@@ -52,6 +52,13 @@ export default class CategoryItem extends React.Component {
 
     componentDidUpdate(){
         this.scrollIntoView()
+        if(this.state.containsCurrentTab){
+            console.log('te...', this.props.resorted)
+            if(!this.props.resorted){
+                this.props.updateCategoryNode(this.props.index, {containsCurrentTab: true})
+            }
+        }
+        if(!this.props.resorted && this.props.isLast) this.props.resortCategoryNodes()
     }
 
 
