@@ -20,8 +20,10 @@ export default class CategoryItem extends React.Component {
       
         if (categoryId === "NEW") {
           newCategoryTitle = element.getAttribute("data-title");
+          // TODO create under folder
           browser.bookmarks.create({
-            title: newCategoryTitle
+            title: newCategoryTitle,
+            parentId: this.props.node.parentId,
           }).then( (res) => this.processBookmark(res.id) )
         } else {
           this.processBookmark(categoryId);
@@ -99,7 +101,7 @@ export default class CategoryItem extends React.Component {
                 data-title={title}
                 className={classNames.join(' ')}
                 onClick={this.clickHandler}>
-                {id === 'NEW' && 'New: '} {title} {id === 'NEW' ? '' : ` (${count})`}
+                {id === 'NEW' && 'New: '} "{title}" {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
             </span>
         </React.Fragment>)
     }

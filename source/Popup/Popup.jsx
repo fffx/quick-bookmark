@@ -37,6 +37,7 @@ class Popup extends React.Component {
             },
             isSupportPinyin: isSupportPinyin,
             categoryNodes: [],
+            rootNodes: [],
             currentActiveTab: null,
             cursor: 0,
             resorted: false, // resort after child check conatains current tab
@@ -129,6 +130,7 @@ class Popup extends React.Component {
             }
 
             this.setState({
+                rootNodes: bookmarkItems[0].children,
                 categoryNodes: categoryNodes,
                 cursor: categoryNodes.length > cursor ? cursor : 0,
                 fuzzySearch: new Fuse(categoryNodesWithPinyin || categoryNodes, fuseOptions)
@@ -143,15 +145,20 @@ class Popup extends React.Component {
                 const filteredNodes = results.map(x => x.item);
                 let newCursor = 0
                 // console.log(`best score: ${results[0]?.score}`)
-                if (filteredNodes.length === 0 || !filteredNodes[0].title != text) {
-                    const newBtn = {
-                        title: text,
-                        id: 'NEW',
-                        children: []
-                    }
-                    if(filteredNodes.length > 0) newCursor += 1
-                    console.log("Not found ...", text)
-                    this.setState({ categoryNodes: [newBtn, ...filteredNodes], cursor: newCursor })
+                if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
+                    console.log('rootNodes', this.state.rootNodes.length, this.state.rootNodes)
+                    const newBtns = this.state.rootNodes.map( x => {
+                        return {
+                            title: text,
+                            id: 'NEW',
+                            parentTitle: x.title,
+                            parentId: x.id,
+                            children: []
+                        }
+                    })
+                    if(filteredNodes.length > 0) newCursor += newBtns.length
+                    // console.log("Not found ...", text)
+                    this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
                 } else {
                     this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
                 }
