@@ -46,11 +46,14 @@ export default class CategoryItem extends React.Component {
     }
 
     componentDidMount(){
-        this.scrollIntoView()
+        this.scrollIntoView(true)
+        if(this.props.currentActiveTab && this.props.node.children.find( x => x.url === this.props.currentActiveTab.url)){
+            this.setState({containsCurrentTab: true})
+        }
     }
 
     componentDidUpdate(){
-        this.scrollIntoView()
+        this.scrollIntoView(true)
     }
 
 
@@ -59,7 +62,8 @@ export default class CategoryItem extends React.Component {
         
     // }
     render(){
-        const { node, focused, containsCurrentTab} = this.props
+        const { node, focused} = this.props
+        const { containsCurrentTab } = this.state
         const { id } = node
         const count = node.children.length
         const title = node.titlePrefix ? node.titlePrefix + SEPARATOR + node.title : node.title;

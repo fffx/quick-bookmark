@@ -82,6 +82,7 @@ class Popup extends React.Component {
 
     resetcategoryNodes() {
         const { fuseOptions, isSupportPinyin, cursor } = this.state
+        // const currentTab = await browser.tabs.query({'active': true, 'currentWindow': true})[0]
         browser.bookmarks.getTree().then(bookmarkItems => {
             const categoryNodes = filterRecursively(bookmarkItems, "children", function (node) {
                 return !node.url && node.id > 0;
@@ -169,7 +170,7 @@ class Popup extends React.Component {
                         return(<CategoryItem
                             node={node} key={node.id}
                             focused={cursor === index}
-                            containsCurrentTab={currentActiveTab && node.children.find( x => x.url === currentActiveTab.url) }
+                            currentActiveTab={currentActiveTab}
                             ref={cursor === index ? this.focusedCategoryItem : null}
                         />)
                     })}
