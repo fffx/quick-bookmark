@@ -163,7 +163,6 @@ class Popup extends React.Component {
                     placeholder="Filter ..."
                     onKeyDown={this.onKeydown} 
                     onChange={this.onInputChange} 
-                    style={{position: 'fixed'}}
                     autoFocus={true}></input>
                 <div id="wrapper">
                     {categoryNodes.map((node, index) => {

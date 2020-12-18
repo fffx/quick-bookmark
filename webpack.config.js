@@ -19,7 +19,7 @@ const targetBrowser = process.env.TARGET_BROWSER;
 const extensionReloaderPlugin =
   nodeEnv === 'development'
     ? new ExtensionReloader({
-        port: 9090,
+        port: 9091,
         reloadPage: true,
         entries: {
           // TODO: reload manifest on update
