@@ -51,6 +51,7 @@ class Popup extends React.Component {
 
             browser.bookmarks.remove(currendNode.id).then( () => {
                 this.resetcategoryNodes()
+                window.close()
             })
         })
     }
@@ -86,6 +87,8 @@ class Popup extends React.Component {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
     onKeydown = (e) => {
         const { cursor, categoryNodes } = this.state
+
+        console.log('keydown', e.key)
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
             e.preventDefault()
@@ -98,8 +101,12 @@ class Popup extends React.Component {
                 cursor: cursor < categoryNodes.length - 1 ? prevState.cursor + 1 : 0
             }))
         } else if(e.key === 'Enter') {
-            // console.log('---------------', this.focusedCategoryItem.current)
-            this.focusedCategoryItem.current.categoryItemRef.current.click();
+            console.log('---------------', this.focusedCategoryItem.current)
+            if(this.focusedCategoryItem.current.categoryItemRef.current.classList.contains('contains-current-tab')){
+                this.removeCurrentTab()
+            } else {
+                this.focusedCategoryItem.current.categoryItemRef.current.click();
+            }
         } else if(e.key === 'Delete' && this.focusedCategoryItem.current) {
             this.removeCurrentTab()
         }
@@ -132,6 +139,7 @@ class Popup extends React.Component {
             }
 
             this.setState({
+                resorted: false,
                 rootNodes: bookmarkItems[0].children,
                 categoryNodes: categoryNodes,
                 cursor: categoryNodes.length > cursor ? cursor : 0,
