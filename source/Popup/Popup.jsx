@@ -88,10 +88,12 @@ class Popup extends React.Component {
         const { cursor, categoryNodes } = this.state
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
+            e.preventDefault()
             this.setState(prevState => ({
                 cursor: cursor > 0 ? prevState.cursor - 1 : categoryNodes.length - 1
             }))
         } else if (e.key === "ArrowDown") {
+            e.preventDefault()
             this.setState(prevState => ({
                 cursor: cursor < categoryNodes.length - 1 ? prevState.cursor + 1 : 0
             }))
@@ -198,7 +200,7 @@ class Popup extends React.Component {
                 <div id="wrapper">
                     {categoryNodes.map((node, index) => {
                         return(<CategoryItem
-                            node={node} key={node.id}
+                            node={node} key={`${node.id}-${node.parentId}`}
                             focused={cursor === index}
                             currentActiveTab={currentActiveTab}
                             updateCategoryNode={this.updateCategoryNode}

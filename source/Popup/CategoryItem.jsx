@@ -101,7 +101,7 @@ export default class CategoryItem extends React.Component {
                 data-title={title}
                 className={classNames.join(' ')}
                 onClick={this.clickHandler}>
-                {id === 'NEW' && 'New: '} "{title}" {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
+                {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
             </span>
         </React.Fragment>)
     }

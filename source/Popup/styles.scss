@@ -50,6 +50,7 @@ section{
       /*border-top: 1px solid #e0efef;*/
       cursor: pointer;
       // -webkit-transition: background 0.1s ease-out;
+      text-align: justify;
 
       &:hover, &.focus {
         color: #000;
@@ -61,7 +62,7 @@ section{
         margin-top: 10px;
         border-top: 1px solid #eee;
         text-decoration: underline;
-        white-space: normal;
+        // white-space: normal;
         font-size: smaller;
       }
     }
