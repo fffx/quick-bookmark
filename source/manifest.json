@@ -43,7 +43,7 @@
       "48": "assets/icons/bookmark.png",
       "128": "assets/icons/bookmark.png"
     },
-    "default_title": "tiny title",
+    "default_title": "Quick Bookmark",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
   },
@@ -58,7 +58,14 @@
   "commands": {
     "_execute_browser_action": {
 
-      "suggested_key": {
+      "__firefox__suggested_key": {
+        "default": "Ctrl+M",
+        "windows": "Ctrl+M",
+        "mac": "Command+M",
+        "chromeos": "Ctrl+M",
+        "linux": "Ctrl+M"
+      },
+      "__chrome__suggested_key": {
         "default": "Ctrl+B",
         "windows": "Ctrl+B",
         "mac": "Command+B",

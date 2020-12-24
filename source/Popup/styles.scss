@@ -35,12 +35,8 @@ section{
     min-height: 200px;
     text-align: right;
     transition: all 0.5s ease-in-out;
-
-    span:first-child {
-      border-top-color: transparent;
-    }
     
-    span {
+    > span {
       font-family: "Lucida Grande", Tahoma, sans-serif;
       // font-size: 16px;
       color: #666;
@@ -52,10 +48,18 @@ section{
       // -webkit-transition: background 0.1s ease-out;
       text-align: justify;
 
+      &:first-child {
+        border-top-color: transparent;
+      }
+
       &:hover, &.focus {
         color: #000;
         border-radius: 5px;
         background: #C5ECFC;
+      }
+
+      &:hover + &:not(.create), .focus + &:not(.create) {
+        border-top-color: transparent;
       }
 
       &.create {
@@ -65,13 +69,11 @@ section{
         // white-space: normal;
         font-size: smaller;
       }
+
+      .node-icon{
+        padding-right: 20px;
+      }
     }
-
-    span:hover + span:not(.create), .focus + span:not(.create) {
-      border-top-color: transparent;
-    }
-
-
   }
 }
 

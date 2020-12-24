@@ -6811,6 +6811,11 @@ react-dom@^17.0.1:
     object-assign "^4.1.1"
     scheduler "^0.20.1"
 
+react-icons@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.npm.taobao.org/react-icons/download/react-icons-4.1.0.tgz?cache=0&sync_timestamp=1606379466691&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-icons%2Fdownload%2Freact-icons-4.1.0.tgz#9ca9bcbf2e3aee8e86e378bb9d465842947bbfc3"
+  integrity sha1-nKm8vy467o6G43i7nUZYQpR7v8M=
+
 react-is@^16.8.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"

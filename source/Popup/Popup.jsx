@@ -58,7 +58,7 @@ class Popup extends React.Component {
     }
     updateCategoryNode = (index, newNodeProps) =>{
         // Yeah update categoryNodes directly, 
-        console.log('update category node', index, newNodeProps)
+        console.debug('update category node', index, newNodeProps)
         this.state.categoryNodes[index] = Object.assign(this.state.categoryNodes[index], newNodeProps)
     }
 
@@ -82,7 +82,7 @@ class Popup extends React.Component {
     onKeydown = (e) => {
         const { cursor, categoryNodes } = this.state
 
-        console.log('keydown', e.key)
+        console.debug('keydown', e.key)
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
             e.preventDefault()
@@ -95,7 +95,7 @@ class Popup extends React.Component {
                 cursor: cursor < categoryNodes.length - 1 ? prevState.cursor + 1 : 0
             }))
         } else if(e.key === 'Enter') {
-            console.log('---------------', this.focusedCategoryItem.current)
+            console.debug('---------------', this.focusedCategoryItem.current)
             if(this.focusedCategoryItem.current.categoryItemRef.current.classList.contains('contains-current-tab')){
                 this.removeCurrentTab()
             } else {
@@ -121,13 +121,13 @@ class Popup extends React.Component {
             if (isSupportPinyin) {
                 categoryNodesWithPinyin = categoryNodes.map(x => {
                     if (x.title.match(/[\u3400-\u9FBF]/)) {
-                        // console.log(x.title)
+                        // console.debug(x.title)
                         x.pinyinTitle = Pinyin.convertToPinyin(x.title, ' ', true)
                     } else {
                         x.pinyinTitle = x.title
                     }
                     x.firstLetter = x.pinyinTitle.match(/\b\w/g).join('')
-                    // console.log(`pinyinTitle: ${x.pinyinTitle}, firstLetter: ${x.firstLetter}`)
+                    // console.debug(`pinyinTitle: ${x.pinyinTitle}, firstLetter: ${x.firstLetter}`)
                     return x;
                 });
             }
@@ -147,9 +147,9 @@ class Popup extends React.Component {
             if (text && text.length > 0) {
                 const filteredNodes = this.state.fuzzySearch.search(text)
                 let newCursor = 0
-                // console.log(`best score: ${results[0]?.score}`)
+                // console.debug(`best score: ${results[0]?.score}`)
                 if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
-                    console.log('rootNodes', this.state.rootNodes.length, this.state.rootNodes)
+                    console.debug('rootNodes', this.state.rootNodes.length, this.state.rootNodes)
                     const newBtns = this.state.rootNodes.map( x => {
                         return {
                             title: text,
@@ -160,7 +160,7 @@ class Popup extends React.Component {
                         }
                     })
                     if(filteredNodes.length > 0) newCursor += newBtns.length
-                    // console.log("Not found ...", text)
+                    // console.debug("Not found ...", text)
                     this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
                 } else {
                     this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
@@ -175,13 +175,13 @@ class Popup extends React.Component {
         this.resetcategoryNodes()
 
         browser.windows.onFocusChanged.addListener(() => {
-            // console.log('focus--------------------')
+            // console.debug('focus--------------------')
             // TODO this not working
             this.filterInput.current.focus()
         })
 
         helper.getCurrentUrlData( (url, title) => {
-            // console.log('set currentActiveTab', url)
+            // console.debug('set currentActiveTab', url)
             this.setState({currentActiveTab: {url: url, title: title}})
         })
     }
@@ -189,7 +189,7 @@ class Popup extends React.Component {
     render() {
         const { categoryNodes, cursor, currentActiveTab, resorted } = this.state
         // const filterInputValue = this.filterInput ? this.filterInput.value : ''
-        // console.log('categoryNodes', categoryNodes.length)
+        // console.debug('categoryNodes', categoryNodes.length)
         return (
             <section id="popup">
                 <input

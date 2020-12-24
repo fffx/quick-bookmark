@@ -1,6 +1,8 @@
 import * as React from 'react';
 import browser from 'webextension-polyfill';
 import * as helper from '../helper';
+import { FaFolderPlus, FaFolder, FaFolderMinus } from "react-icons/fa";
+
 const SEPARATOR = ' / '
 export default class CategoryItem extends React.Component {
     constructor(props){
@@ -8,8 +10,7 @@ export default class CategoryItem extends React.Component {
         this.categoryItemRef = React.createRef();
 
         this.state = {
-            containsCurrentTab: false,
-            active: false
+            containsCurrentTab: false
         }
     }
 
@@ -55,7 +56,7 @@ export default class CategoryItem extends React.Component {
     componentDidUpdate(){
         this.scrollIntoView()
         if(this.state.containsCurrentTab){
-            console.log('te...', this.props.resorted)
+            // console.log('te...', this.props.resorted)
             if(!this.props.resorted){
                 this.props.updateCategoryNode(this.props.index, {containsCurrentTab: true})
             }
@@ -102,6 +103,9 @@ export default class CategoryItem extends React.Component {
                 data-title={title}
                 className={classNames.join(' ')}
                 onClick={this.clickHandler}>
+                <span className="node-icon">
+                    {focused ? ( containsCurrentTab ? <FaFolderMinus/>  : <FaFolderPlus /> ): <FaFolder />}
+                </span>
                 {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
             </span>
         </React.Fragment>)
