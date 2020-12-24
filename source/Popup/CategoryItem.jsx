@@ -81,7 +81,7 @@ export default class CategoryItem extends React.Component {
         const { containsCurrentTab } = this.state
         const { id } = node
         const count = node.children.length
-        const title = node.titlePrefix ? node.titlePrefix + SEPARATOR + node.title : node.title;
+        const title = node.titlePrefix || node.title;
         let classNames = []
         if(focused){
             classNames.push('focus')

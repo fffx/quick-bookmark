@@ -6,14 +6,16 @@ import fuzzySearch from './searchEngine'
 import * as helper from '../helper';
 
 import './styles.scss';
+const SEPARATOR = ' / '
 
 const filterRecursively = (nodeArray, childrenProperty, filterFn, results, titlePrefix) => {
     results = results || [];
     nodeArray.forEach(function (node) {
-        node.titlePrefix = node.titlePrefix && titlePrefix ? titlePrefix + SEPARATOR + node.titlePrefix : titlePrefix
+        node.titlePrefix = titlePrefix ? `${titlePrefix}${SEPARATOR}${node.title}` : null
+
         if (filterFn(node)) results.push(node);
 
-        var nextPrefix = node.id > 0 ? node.title : ''
+        var nextPrefix = node.id > 0 ? node.titlePrefix || node.title : ''
         if (node.children) filterRecursively(node.children, childrenProperty, filterFn, results, nextPrefix);
     });
 
