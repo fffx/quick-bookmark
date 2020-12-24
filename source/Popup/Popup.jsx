@@ -1,8 +1,8 @@
 import * as React from 'react';
 import CategoryItem from './CategoryItem'
 import Pinyin from 'tiny-pinyin'
-import Fuse from 'fuse.js'
 import browser from 'webextension-polyfill';
+import fuzzySearch from './searchEngine'
 import * as helper from '../helper';
 
 import './styles.scss';
@@ -29,12 +29,6 @@ class Popup extends React.Component {
 
         const isSupportPinyin = Pinyin.isSupported()
         this.state = {
-            fuseOptions: {
-                keys: isSupportPinyin ? ['pinyinTitle', 'firstLetter'] : ['title'],
-                threshold: 0.3,
-                findAllMatches: true,
-                isCaseSensitive: false
-            },
             isSupportPinyin: isSupportPinyin,
             categoryNodes: [],
             rootNodes: [],
@@ -143,7 +137,7 @@ class Popup extends React.Component {
                 rootNodes: bookmarkItems[0].children,
                 categoryNodes: categoryNodes,
                 cursor: categoryNodes.length > cursor ? cursor : 0,
-                fuzzySearch: new Fuse(categoryNodesWithPinyin || categoryNodes, fuseOptions)
+                fuzzySearch: new fuzzySearch(categoryNodesWithPinyin || categoryNodes)
             })
         }, this.onRejected)
     }
@@ -151,8 +145,7 @@ class Popup extends React.Component {
         this.delayedFilter = helper.debounce(event => {
             const text = event.target.value
             if (text && text.length > 0) {
-                const results = this.state.fuzzySearch.search(text)
-                const filteredNodes = results.map(x => x.item);
+                const filteredNodes = this.state.fuzzySearch.search(text)
                 let newCursor = 0
                 // console.log(`best score: ${results[0]?.score}`)
                 if (filteredNodes.length === 0 || filteredNodes[0].title != text) {

@@ -4025,6 +4025,11 @@ flatted@^2.0.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-2.0.2.tgz#4575b21e2bcee7434aa9be662f4b7b5f9c2b5138"
   integrity sha512-r5wGx7YeOwNWNlCA0wQ86zKyDLMQr+/RB8xy74M4hTphfmjlijTSSXGuH8rnvKZnfT9i+75zmd8jcKdMR4O6jA==
 
+flexsearch@^0.6.32:
+  version "0.6.32"
+  resolved "https://registry.npm.taobao.org/flexsearch/download/flexsearch-0.6.32.tgz#1e20684d317af65baa445cdd9864a5f5b320f510"
+  integrity sha1-HiBoTTF69luqRFzdmGSl9bMg9RA=
+
 flush-write-stream@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.1.1.tgz#8dd7d873a1babc207d94ead0c2e0e44276ebf2e8"
@@ -4141,6 +4146,11 @@ fuse.js@^6.4.3:
   version "6.4.3"
   resolved "https://registry.npm.taobao.org/fuse.js/download/fuse.js-6.4.3.tgz#aadd6ac34aab5b1d6e6c60462fcb4d1c3f53bb01"
   integrity sha1-qt1qw0qrWx1ubGBGL8tNHD9TuwE=
+
+fuzzysort@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.npm.taobao.org/fuzzysort/download/fuzzysort-1.1.4.tgz#a0510206ed44532cbb52cf797bf5a3cb12acd4ba"
+  integrity sha1-oFECBu1EUyy7Us95e/WjyxKs1Lo=
 
 gauge@~2.7.3:
   version "2.7.4"
