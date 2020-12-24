@@ -5,7 +5,7 @@
 
 
 body {
-  font-size: larger;
+  // font-size: larger;
   color: #333;
   transition: all 0.5s ease-in-out;
 }
@@ -59,7 +59,7 @@ section{
       }
 
       &.create {
-        margin-top: 10px;
+        margin-bottom: 10px;
         border-top: 1px solid #eee;
         text-decoration: underline;
         // white-space: normal;
