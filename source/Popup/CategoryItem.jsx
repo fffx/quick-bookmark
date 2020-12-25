@@ -8,6 +8,9 @@ export default class CategoryItem extends React.Component {
     constructor(props){
         super(props)
         this.categoryItemRef = React.createRef();
+        this.scrollIntoView = helper.debounce(() => {
+            this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
+        })
 
         this.state = {
             containsCurrentTab: false
@@ -18,7 +21,7 @@ export default class CategoryItem extends React.Component {
         const element = event.target
         const categoryId = element.getAttribute("data-id");
         var newCategoryTitle;
-      
+
         if (categoryId === "NEW") {
           newCategoryTitle = element.getAttribute("data-title");
           // TODO create under folder
@@ -28,7 +31,7 @@ export default class CategoryItem extends React.Component {
           }).then( (res) => this.processBookmark(res.id) )
         } else {
           this.processBookmark(categoryId);
-        } 
+        }
     }
 
 
@@ -42,11 +45,7 @@ export default class CategoryItem extends React.Component {
             }).then( () => window.close() )
           }
         });
-      
-    }
 
-    scrollIntoView = () => {
-        this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
     }
 
     componentDidMount(){
@@ -83,6 +82,7 @@ export default class CategoryItem extends React.Component {
         const count = node.children.length
         const title = node.titlePrefix || node.title;
         let classNames = []
+
         if(focused){
             classNames.push('focus')
         }
@@ -96,15 +96,15 @@ export default class CategoryItem extends React.Component {
 
         // TODO hove show Delete, Rename, Move
         return (<React.Fragment>
-            <span 
+            <span
                 ref={this.categoryItemRef}
                 data-id={id}
-                data-count={count} 
+                data-count={count}
                 data-title={title}
                 className={classNames.join(' ')}
                 onClick={this.clickHandler}>
                 <span className="node-icon">
-                    {focused ? ( containsCurrentTab ? <FaFolderMinus/>  : <FaFolderPlus /> ): <FaFolder />}
+                    {focused ? ( containsCurrentTab ? <FaFolderMinus fill={'green'}/>  : <FaFolderPlus /> ): <FaFolder fill={containsCurrentTab ? 'green' : null} />}
                 </span>
                 {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
             </span>
