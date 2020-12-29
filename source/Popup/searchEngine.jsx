@@ -8,7 +8,7 @@ class FuseIndex {
     fuseOptions = {
         keys: ['pinyinTitle', 'firstLetter', 'title', 'titlePrefix'],
         threshold: 0.3,
-        findAllMatches: true,
+        findAllMatches: false,
         isCaseSensitive: false
     }
     constructor(categoryNodes){

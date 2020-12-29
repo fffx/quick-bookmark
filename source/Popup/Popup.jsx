@@ -8,6 +8,31 @@ import * as helper from '../helper';
 import './styles.scss';
 const SEPARATOR = ' / '
 
+function setPopupStyle(theme) {
+    const myElement = document.getElementById("popup");
+  
+    if (theme.colors && theme.colors.frame) {
+      document.body.style.backgroundColor =
+        theme.colors.frame;
+    } else {
+      document.body.style.backgroundColor = "white";
+    }
+  
+    if (theme.colors && theme.colors.toolbar) {
+      myElement.style.backgroundColor = theme.colors.toolbar;
+    } else {
+      myElement.style.backgroundColor = "#ebebeb";
+    }
+    
+    if (theme.colors && theme.colors.toolbar_text) {
+      myElement.style.color = theme.colors.toolbar_text;
+    } else {
+      myElement.style.color = "black";
+    }
+}
+
+
+
 const filterRecursively = (nodeArray, childrenProperty, filterFn, results, titlePrefix) => {
     results = results || [];
     nodeArray.forEach(function (node) {
@@ -186,6 +211,10 @@ class Popup extends React.Component {
             // console.debug('set currentActiveTab', url)
             this.setState({currentActiveTab: {url: url, title: title}})
         })
+
+ 
+        //  Only firefox support this
+        // browser.theme.getCurrent().then( (theme) => setPopupStyle(theme) )
     }
 
     render() {
