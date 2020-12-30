@@ -36,7 +36,7 @@ jobs:
       - run: |
           set -x
           assets=()
-          for asset in ./extensions/*.*; do
+          for asset in ./extension/*.*; do
             assets+=("-a" "$asset")
           done
           tag_name="${GITHUB_REF##*/}"
