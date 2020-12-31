@@ -29,10 +29,7 @@ jobs:
         with:
           node-version: '15.4.0'
       - run: npm install -g yarn
-      # Runs a single command using the runners shell
-      - name: Build project
       - run: yarn install && yarn run build
-      - name: release
       - run: |
           set -x
           assets=()
