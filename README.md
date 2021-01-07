@@ -17,4 +17,4 @@ Default keybinding is `ctrl + B` or `command + B` for Mac OS users, you can chan
 ![Quick Bookmark popup remove](screenshots/Selection_003_remove.png "Remove a tab from bookmark")
 
 
-**Inspired by** [chrome-better-bookmark](https://github.com/ardcore/chrome-better-bookmark)
+**Based on the work of** [chrome-better-bookmark](https://github.com/ardcore/chrome-better-bookmark)
