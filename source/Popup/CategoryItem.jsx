@@ -1,7 +1,8 @@
 import * as React from 'react';
 import browser from 'webextension-polyfill';
 import * as helper from '../helper';
-import { FaFolderPlus, FaFolder, FaFolderMinus } from "react-icons/fa";
+
+import { HiFolderAdd, HiFolderRemove, HiOutlineFolderAdd, HiOutlineFolderRemove } from "react-icons/hi";
 
 const SEPARATOR = ' / '
 export default class CategoryItem extends React.Component {
@@ -64,6 +65,17 @@ export default class CategoryItem extends React.Component {
     }
 
 
+    renderIcon(){
+        const { focused } = this.props
+        const { containsCurrentTab } = this.state
+        const color = containsCurrentTab ? 'red' : 'inherit'
+        const iconProps = {color: color, size: '1.5em'}
+        if (focused) {
+            return containsCurrentTab ? <HiFolderRemove {...iconProps}/> : <HiFolderAdd {...iconProps}/>
+        } else {
+            return containsCurrentTab ? <HiOutlineFolderRemove {...iconProps}/>  : <HiOutlineFolderAdd {...iconProps}/>
+        } 
+    }
 
     static getDerivedStateFromProps(props, state) {
         const { currentActiveTab}  = props
@@ -93,18 +105,20 @@ export default class CategoryItem extends React.Component {
         if(containsCurrentTab){
             classNames.push('contains-current-tab')
         }
-
+    
         // TODO hove show Delete, Rename, Move
+        const hintTitle = containsCurrentTab ? `Remove bookmark from ${node.title}` : `Add bookmark to ${node.title}`
         return (<React.Fragment>
             <span
                 ref={this.categoryItemRef}
                 data-id={id}
+                title={hintTitle}
                 data-count={count}
                 data-title={title}
                 className={classNames.join(' ')}
                 onClick={this.clickHandler}>
                 <span className="node-icon">
-                    {focused ? ( containsCurrentTab ? <FaFolderMinus fill={'green'}/>  : <FaFolderPlus /> ): <FaFolder fill={containsCurrentTab ? 'green' : null} />}
+                    {this.renderIcon()}
                 </span>
                 {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
             </span>

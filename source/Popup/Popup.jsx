@@ -113,6 +113,7 @@ class Popup extends React.Component {
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
             e.preventDefault()
+            // if(cursor <= 0) return;
             this.setState(prevState => ({
                 cursor: cursor > 0 ? prevState.cursor - 1 : categoryNodes.length - 1
             }))
