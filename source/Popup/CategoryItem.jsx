@@ -11,7 +11,7 @@ export default class CategoryItem extends React.Component {
         this.categoryItemRef = React.createRef();
         this.scrollIntoView = helper.debounce(() => {
             this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
-        })
+        }, 100)
 
         this.state = {
             containsCurrentTab: false
