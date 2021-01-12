@@ -135,7 +135,7 @@ class Popup extends React.Component {
     }
 
     resetcategoryNodes() {
-        const { fuseOptions, isSupportPinyin, cursor } = this.state
+        const { isSupportPinyin, cursor } = this.state
         // const currentTab = await browser.tabs.query({'active': true, 'currentWindow': true})[0]
         browser.bookmarks.getTree().then(bookmarkItems => {
             const categoryNodes = filterRecursively(bookmarkItems, "children", function (node) {
@@ -197,7 +197,7 @@ class Popup extends React.Component {
             } else {
                 this.resetcategoryNodes()
             }
-        }, 300);
+        }, 100);
 
         // TODO remember last filter?
         this.resetcategoryNodes()

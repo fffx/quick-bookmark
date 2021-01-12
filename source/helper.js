@@ -18,3 +18,8 @@ export const getCurrentUrlData = (callbackFn) => {
     });
 }
 
+export const removeHashtag = url => url.split('#')[0]
+export const compareBookmarkUrl = (url1, url2) => {
+  if(!url1 || !url2) return false 
+  return removeHashtag(url1) === removeHashtag(url2)
+}

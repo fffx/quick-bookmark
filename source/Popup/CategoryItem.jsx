@@ -79,7 +79,7 @@ export default class CategoryItem extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         const { currentActiveTab}  = props
-        if(currentActiveTab && props.node.children.find( x => x.url === currentActiveTab.url)){
+        if(currentActiveTab && props.node.children.find( x => x.url && helper.compareBookmarkUrl(x.url, currentActiveTab.url)) ){
             return {containsCurrentTab: true}
         } else {
             return {containsCurrentTab: false}

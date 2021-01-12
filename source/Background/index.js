@@ -1,4 +1,5 @@
 import 'emoji-log';
+import * as helper from '../helper';
 import browser from 'webextension-polyfill';
 
 // browser.runtime.onInstalled.addListener(() => {
@@ -63,13 +64,22 @@ function updateActiveTab() {
     console.log("updateTabs", tabs)
     if (tabs[0]) {
       currentTab = tabs[0];
-      var searching = browser.bookmarks.search({url: currentTab.url});
-      searching.then((bookmarks) => {
+      
+      browser.bookmarks.getTree().then(bookmarkItems => {
+        let bookmarks = []  
+        const filter = (node) => { 
+          if(node.url){ 
+            helper.compareBookmarkUrl(currentTab.url, node.url) && bookmarks.push(node)
+          } else {
+            node.children.forEach(x => filter(x) )
+          }
+         }
+        bookmarkItems.forEach( x=> filter(x) )
         updateBadge(currentTab, bookmarks);
-      });
+      })
     }
   }
-
+  
   var gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
   gettingActiveTab.then(updateTab);
 }
