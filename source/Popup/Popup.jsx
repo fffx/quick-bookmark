@@ -192,7 +192,7 @@ class Popup extends React.Component {
                     rootNodes.map( x => {
                         newBtns.push({
                             title: text, id: 'NEW',
-                            parentTitle: x.titlePrefix,
+                            parentTitle: x.title,
                             parentId: x.id, children: []
                         })
                     })
