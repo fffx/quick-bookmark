@@ -15,7 +15,6 @@
 
   "permissions": [
     "bookmarks",
-    "activeTab",
     "tabs"
   ],
 
