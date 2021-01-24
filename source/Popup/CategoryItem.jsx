@@ -14,38 +14,48 @@ export default class CategoryItem extends React.Component {
         }, 100)
 
         this.state = {
-            containsCurrentTab: false
+            // containsCurrentTab: false
         }
     }
 
     clickHandler = (event) => {
         const element = event.target
         const categoryId = element.getAttribute("data-id");
+        // console.log(categoryId, element)
         var newCategoryTitle;
 
         if (categoryId === "NEW") {
           newCategoryTitle = element.getAttribute("data-title");
-          // TODO create under folder
           browser.bookmarks.create({
             title: newCategoryTitle,
             parentId: this.props.node.parentId,
-          }).then( (res) => this.processBookmark(res.id) )
+          }).then( (res) => this.processBookmark() )
         } else {
-          this.processBookmark(categoryId);
+          this.processBookmark();
         }
     }
 
+    removeTabById(nodeId){
+        browser.bookmarks.remove(nodeId).then( () => {
+            this.props.resortCategoryNodes()
+            window.close()
+        })
+    }
 
-    processBookmark = (categoryId) => {
-        helper.getCurrentUrlData((url, title) => {
-          if (title && categoryId && url) {
-            browser.bookmarks.create({
-                'parentId': categoryId,
-                'title': title,
-                'url': url
-            }).then( () => window.close() )
-          }
-        });
+
+    processBookmark = () => {
+        helper.getCurrentTab().then( currentTab => {
+            var bookmarkNode = this.props.node.children.find(x => helper.isSameBookmarkUrl(x.url, currentTab.url))
+            if(bookmarkNode){
+                return this.removeTabById(bookmarkNode.id)
+            }else{
+                browser.bookmarks.create({
+                    'parentId': this.props.node.id,
+                    'title': currentTab.title,
+                    'url': currentTab.url
+                }).then( () => window.close() )
+            }
+        }, (error) => console.log(error));
 
     }
 
@@ -55,41 +65,35 @@ export default class CategoryItem extends React.Component {
 
     componentDidUpdate(){
         this.scrollIntoView()
-        if(this.state.containsCurrentTab){
-            // console.log('te...', this.props.resorted)
-            if(!this.props.resorted){
-                this.props.updateCategoryNode(this.props.index, {containsCurrentTab: true})
-            }
-        }
         if(!this.props.resorted && this.props.isLast) this.props.resortCategoryNodes()
     }
 
 
     renderIcon(){
-        const { focused } = this.props
-        const { containsCurrentTab } = this.state
-        const color = containsCurrentTab ? 'red' : 'inherit'
+        const { focused, node } = this.props
+        const color = node.containsCurrentTab ? 'red' : 'inherit'
         const iconProps = {color: color, size: '1.5em'}
         if (focused) {
-            return containsCurrentTab ? <HiFolderRemove {...iconProps}/> : <HiFolderAdd {...iconProps}/>
+            return node.containsCurrentTab ? <HiFolderRemove {...iconProps}/> : <HiFolderAdd {...iconProps}/>
         } else {
-            return containsCurrentTab ? <HiOutlineFolderRemove {...iconProps}/>  : <HiOutlineFolderAdd {...iconProps}/>
+            return node.containsCurrentTab ? <HiOutlineFolderRemove {...iconProps}/>  : <HiOutlineFolderAdd {...iconProps}/>
         } 
     }
 
+/* 
     static getDerivedStateFromProps(props, state) {
         const { currentActiveTab}  = props
-        if(currentActiveTab && props.node.children.find( x => x.url && helper.compareBookmarkUrl(x.url, currentActiveTab.url)) ){
+        if(currentActiveTab && props.node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentActiveTab.url)) ){
             return {containsCurrentTab: true}
         } else {
             return {containsCurrentTab: false}
         }
-    }
+    } */
 
 
     render(){
-        const { node, focused} = this.props
-        const { containsCurrentTab } = this.state
+        const { node, focused } = this.props
+
         const { id } = node
         const count = node.children.length
         const title = node.titlePrefix || node.title;
@@ -102,26 +106,24 @@ export default class CategoryItem extends React.Component {
             classNames.push('create')
         }
 
-        if(containsCurrentTab){
+        if(node.containsCurrentTab){
             classNames.push('contains-current-tab')
         }
     
         // TODO hove show Delete, Rename, Move
-        const hintTitle = containsCurrentTab ? `Remove bookmark from ${node.title}` : `Add bookmark to ${node.title}`
-        return (<React.Fragment>
-            <span
-                ref={this.categoryItemRef}
-                data-id={id}
-                title={hintTitle}
-                data-count={count}
-                data-title={title}
-                className={classNames.join(' ')}
-                onClick={this.clickHandler}>
-                <span className="node-icon">
-                    {this.renderIcon()}
-                </span>
-                {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
+        const hintTitle = node.containsCurrentTab ? `Remove bookmark from ${node.title}` : `Add bookmark to ${node.title}`
+        return (<span
+            ref={this.categoryItemRef}
+            data-id={id}
+            title={hintTitle}
+            data-count={count}
+            data-title={title}
+            className={classNames.join(' ')}
+            onClick={this.clickHandler}>
+            <span className="node-icon">
+                {this.renderIcon()}
             </span>
-        </React.Fragment>)
+            {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
+        </span>)
     }
 }

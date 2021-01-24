@@ -65,17 +65,6 @@ class Popup extends React.Component {
         }
     }
 
-    removeCurrentTab(){
-        helper.getCurrentUrlData((url, _title) => {
-            const currendNode = this.focusedCategoryItem?.current.props.node.children.find(x => x.url === url )
-            if(!currendNode) return
-
-            browser.bookmarks.remove(currendNode.id).then( () => {
-                this.resetcategoryNodes()
-                window.close()
-            })
-        })
-    }
 
     onInputChange = (e) => {
         this.delayedFilter(e);
@@ -89,6 +78,7 @@ class Popup extends React.Component {
         this.state.categoryNodes[index] = Object.assign(this.state.categoryNodes[index], newNodeProps)
     }
 
+    // Will resort after remove or add
     resortCategoryNodes = () => {
         const {categoryNodes} = this.state
         this.setState({
@@ -123,14 +113,9 @@ class Popup extends React.Component {
                 cursor: cursor < categoryNodes.length - 1 ? prevState.cursor + 1 : 0
             }))
         } else if(e.key === 'Enter') {
-            console.debug('---------------', this.focusedCategoryItem.current)
-            if(this.focusedCategoryItem.current.categoryItemRef.current.classList.contains('contains-current-tab')){
-                this.removeCurrentTab()
-            } else {
-                this.focusedCategoryItem.current.categoryItemRef.current.click();
-            }
+            this.focusedCategoryItem.current.categoryItemRef.current.click();
         } else if(e.key === 'Delete' && this.focusedCategoryItem.current) {
-            this.removeCurrentTab()
+            this.focusedCategoryItem.current.categoryItemRef.current.click();
         }
     }
 
@@ -217,9 +202,19 @@ class Popup extends React.Component {
             this.filterInput.current.focus()
         })
 
-        helper.getCurrentUrlData( (url, title) => {
-            // console.debug('set currentActiveTab', url)
-            this.setState({currentActiveTab: {url: url, title: title}})
+        helper.getCurrentTab().then(currentTab => {
+            let newCategoryNodes = [...this.state.categoryNodes]
+            newCategoryNodes.forEach((node) => {
+                if(node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentTab.url))){
+                    console.log('containsCurrentTab===============', node.title)
+                    node.containsCurrentTab = true
+                }
+            })
+
+            this.setState({
+                currentActiveTab: currentTab,
+                categoryNodes: newCategoryNodes
+            })
         })
 
  

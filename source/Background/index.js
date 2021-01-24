@@ -69,7 +69,7 @@ function updateActiveTab() {
         let bookmarks = []  
         const filter = (node) => { 
           if(node.url){ 
-            helper.compareBookmarkUrl(currentTab.url, node.url) && bookmarks.push(node)
+            helper.isSameBookmarkUrl(currentTab.url, node.url) && bookmarks.push(node)
           } else {
             node.children.forEach(x => filter(x) )
           }
