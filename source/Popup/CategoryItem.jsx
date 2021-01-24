@@ -2,7 +2,11 @@ import * as React from 'react';
 import browser from 'webextension-polyfill';
 import * as helper from '../helper';
 
-import { HiFolderAdd, HiFolderRemove, HiOutlineFolderAdd, HiOutlineFolderRemove } from "react-icons/hi";
+import { 
+    HiOutlineFolderAdd, HiOutlineFolderRemove 
+} from "react-icons/hi";
+
+import { VscDiffAdded, VscDiffRemoved, VscAdd, VscRemove } from 'react-icons/vsc'
 
 const SEPARATOR = ' / '
 export default class CategoryItem extends React.Component {
@@ -18,20 +22,14 @@ export default class CategoryItem extends React.Component {
         }
     }
 
-    clickHandler = (event) => {
-        const element = event.target
-        const categoryId = element.getAttribute("data-id");
-        // console.log(categoryId, element)
-        var newCategoryTitle;
-
-        if (categoryId === "NEW") {
-          newCategoryTitle = element.getAttribute("data-title");
-          browser.bookmarks.create({
-            title: newCategoryTitle,
-            parentId: this.props.node.parentId,
-          }).then( (res) => this.processBookmark() )
+    clickHandler = (event) => {        
+        if (this.props.node.id === "NEW") {
+            browser.bookmarks.create({
+                title: this.props.node.title,
+                parentId: this.props.node.parentId,
+            }).then((newNode) => this.processBookmark(newNode) )
         } else {
-          this.processBookmark();
+            this.processBookmark();
         }
     }
 
@@ -43,14 +41,16 @@ export default class CategoryItem extends React.Component {
     }
 
 
-    processBookmark = () => {
+    processBookmark = (targetNode) => {
+        targetNode = targetNode || this.props.node
         helper.getCurrentTab().then( currentTab => {
-            var bookmarkNode = this.props.node.children.find(x => helper.isSameBookmarkUrl(x.url, currentTab.url))
+            // newNode have none children
+            var bookmarkNode = targetNode?.children?.find(x => helper.isSameBookmarkUrl(x.url, currentTab.url))
             if(bookmarkNode){
                 return this.removeTabById(bookmarkNode.id)
             }else{
                 browser.bookmarks.create({
-                    'parentId': this.props.node.id,
+                    'parentId': targetNode.id,
                     'title': currentTab.title,
                     'url': currentTab.url
                 }).then( () => window.close() )
@@ -73,11 +73,13 @@ export default class CategoryItem extends React.Component {
         const { focused, node } = this.props
         const color = node.containsCurrentTab ? 'red' : 'inherit'
         const iconProps = {color: color, size: '1.5em'}
-        if (focused) {
-            return node.containsCurrentTab ? <HiFolderRemove {...iconProps}/> : <HiFolderAdd {...iconProps}/>
+        if(node.id === 'NEW'){
+            return focused ? <HiOutlineFolderAdd {...iconProps}/> : <HiOutlineFolderAdd {...iconProps}/>
+        } else if(focused) {
+            return node.containsCurrentTab ? <VscDiffRemoved {...iconProps}/> : <VscDiffAdded {...iconProps}/>
         } else {
-            return node.containsCurrentTab ? <HiOutlineFolderRemove {...iconProps}/>  : <HiOutlineFolderAdd {...iconProps}/>
-        } 
+            return node.containsCurrentTab ? <VscRemove {...iconProps}/> : <VscAdd {...iconProps}/>
+        }
     }
 
 /* 
