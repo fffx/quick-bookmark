@@ -1,12 +1,11 @@
 import * as React from 'react';
-import CategoryItem from './CategoryItem'
+import { CategoryItem, SEPARATOR} from './CategoryItem'
 import Pinyin from 'tiny-pinyin'
 import browser from 'webextension-polyfill';
 import fuzzySearch from './searchEngine'
 import * as helper from '../helper';
 
 import './styles.scss';
-const SEPARATOR = ' / '
 
 function setPopupStyle(theme) {
     const myElement = document.getElementById("popup");

@@ -10,6 +10,10 @@ body {
   transition: all 0.5s ease-in-out;
 }
 
+span.separator{
+  width: 5px;
+}
+
 section{
   padding: 10px;
   padding-bottom: 50px;
@@ -36,7 +40,7 @@ section{
     text-align: right;
     transition: all 0.5s ease-in-out;
     
-    > span {
+    > div {
       font-family: "Lucida Grande", Tahoma, sans-serif;
       font-size: 1.2em;
       color: #666;
@@ -54,26 +58,37 @@ section{
         border-top-color: transparent;
       }
 
-      &:hover, &.focus {
+      &:hover {
         color: #000;
         border-radius: 5px;
         background: #C5ECFC;
+      }
+
+      &.focus {
+        color: #000;
+        border-radius: 5px;
+        background: #dec5fc;
       }
 
       &:hover + &:not(.create), .focus + &:not(.create) {
         border-top-color: transparent;
       }
 
-      &.create {
+      &.create{
         margin-bottom: 10px;
         border-top: 1px solid #eee;
-        text-decoration: underline;
-        // white-space: normal;
-        font-size: 1.5em;
+        
+        .new-folder-name{
+          text-decoration: underline;
+          border: 1px black;
+          padding-left: 0.5em;
+          color: green;
+          font-size: 1.2em;
+        }
       }
 
-      .node-icon{
-        padding-right: 20px;
+      .category-icon{
+        margin-right: 10px;
       }
     }
   }

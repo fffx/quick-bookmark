@@ -3,13 +3,14 @@ import browser from 'webextension-polyfill';
 import * as helper from '../helper';
 
 import { 
-    HiOutlineFolderAdd, HiOutlineFolderRemove 
+    HiOutlineFolderAdd 
 } from "react-icons/hi";
 
 import { VscDiffAdded, VscDiffRemoved, VscAdd, VscRemove } from 'react-icons/vsc'
 
+// const SEPARATOR = <span className="separator"> </span>
 const SEPARATOR = ' / '
-export default class CategoryItem extends React.Component {
+class CategoryItem extends React.Component {
     constructor(props){
         super(props)
         this.categoryItemRef = React.createRef();
@@ -69,16 +70,22 @@ export default class CategoryItem extends React.Component {
     }
 
 
-    renderIcon(){
-        const { focused, node } = this.props
+    renderIcon(node){
+        const { focused } = this.props
         const color = node.containsCurrentTab ? 'red' : 'inherit'
-        const iconProps = {color: color, size: '1.5em'}
+        const iconProps = {color: color, size: '1.5em', className: "category-icon"}
         if(node.id === 'NEW'){
             return focused ? <HiOutlineFolderAdd {...iconProps}/> : <HiOutlineFolderAdd {...iconProps}/>
-        } else if(focused) {
-            return node.containsCurrentTab ? <VscDiffRemoved {...iconProps}/> : <VscDiffAdded {...iconProps}/>
         } else {
             return node.containsCurrentTab ? <VscRemove {...iconProps}/> : <VscAdd {...iconProps}/>
+        }
+    }
+
+    renderTitle(node){
+        if(node.id === 'NEW'){
+            return (<> {node.parentTitle}{SEPARATOR}<span className="new-folder-name">{node.title}</span> </>)
+        } else {
+            return `${node.titlePrefix || node.title} (${node.children.length})`
         }
     }
 
@@ -113,19 +120,25 @@ export default class CategoryItem extends React.Component {
         }
     
         // TODO hove show Delete, Rename, Move
-        const hintTitle = node.containsCurrentTab ? `Remove bookmark from ${node.title}` : `Add bookmark to ${node.title}`
-        return (<span
+        let hintTitle = "" 
+        if(id === "NEW") {
+            `New ${node.title} under ${node.parentTitle} and bookmark current tab to it`
+        } else {
+            node.containsCurrentTab ? `Remove bookmark from ${node.title}` : `Bookmark current tab to ${node.title}`
+        }
+        return (<div
             ref={this.categoryItemRef}
-            data-id={id}
+            data-id={`${id}-${title}`}
             title={hintTitle}
             data-count={count}
             data-title={title}
             className={classNames.join(' ')}
             onClick={this.clickHandler}>
-            <span className="node-icon">
-                {this.renderIcon()}
-            </span>
-            {id === 'NEW' ? `New: "${title}"` : title} {id === 'NEW' ? `under "${node.parentTitle}"` : ` (${count})`}
-        </span>)
+                {this.renderIcon(node)}
+                {this.renderTitle(node)}
+        </div>)
     }
 }
+
+
+export {SEPARATOR, CategoryItem}
