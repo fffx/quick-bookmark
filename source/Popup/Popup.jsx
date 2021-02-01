@@ -98,7 +98,7 @@ class Popup extends React.Component {
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
     onKeyDown = (e) => {
         const { cursor, categoryNodes } = this.state
-
+        this.checkShiftHolding(e)
         console.debug('keydown', e.key)
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
@@ -117,12 +117,27 @@ class Popup extends React.Component {
         } else if(e.key === 'Delete' && this.focusedCategoryItem.current) {
             this.focusedCategoryItem.current.categoryItemRef.current.click();
         }
-        this.setState({saveDomainOnly: e.shiftKey})
     }
 
-//  TODO not fired
+
+    checkShiftHolding(e){
+        if(e.shiftKey && !this.state.saveDomainOnly){
+            this.setState({saveDomainOnly: true})
+        }
+
+        this._resetSaveDomainOnlyTimeout && clearTimeout(this._resetSaveDomainOnlyTimeout)
+        if(e.shiftKey){
+            this._resetSaveDomainOnlyTimeout = setTimeout(() => {
+                console.log("00000000000000000000000000 reset   ")
+                this.setState({saveDomainOnly: false})
+            }, 500)
+        } else if(this.state.saveDomainOnly) {
+            this.setState({saveDomainOnly: false})
+        }
+    }
+    //  TODO not fired
     onKeyUp = (e) => {
-        console.log(`keyup ${e.key}, ${e.shiftKey}`)
+        // console.log(`keyup ${e.key}, ${e.shiftKey}`)
         if(e.shiftKey){
             this.setState({saveDomainOnly: false})
         }

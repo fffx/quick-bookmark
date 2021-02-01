@@ -7,7 +7,7 @@ import {
     HiOutlineFolderAdd 
 } from "react-icons/hi";
 
-import { VscDiffAdded, VscDiffRemoved, VscAdd, VscRemove } from 'react-icons/vsc'
+import { VscAdd, VscRemove } from 'react-icons/vsc'
 
 // const SEPARATOR = <span className="separator"> </span>
 const SEPARATOR = ' / '
@@ -51,10 +51,11 @@ class CategoryItem extends React.Component {
             if(bookmarkNode){
                 return this.removeTabById(bookmarkNode.id)
             }else{
+                const urlObject = new URL(currentTab.url);
                 browser.bookmarks.create({
                     'parentId': targetNode.id,
-                    'title': currentTab.title,
-                    'url': currentTab.url
+                    'title': this.props.saveDomainOnly ? urlObject.hostname : currentTab.title,
+                    'url': this.props.saveDomainOnly ? `${urlObject.protocol}//${urlObject.hostname}` : currentTab.url
                 }).then( () => window.close() )
             }
         }, (error) => console.log(error));
@@ -101,6 +102,7 @@ class CategoryItem extends React.Component {
     } */
 
 
+
     render(){
         const { node, focused, saveDomainOnly } = this.props
 
@@ -109,6 +111,7 @@ class CategoryItem extends React.Component {
         const title = node.titlePrefix || node.title;
         let classNames = []
 
+        const showSaveDomainOnly = saveDomainOnly && focused && !node.containsCurrentTab
         if(focused){
             classNames.push('focus')
         }
@@ -137,7 +140,7 @@ class CategoryItem extends React.Component {
             onClick={this.clickHandler}>
                 {this.renderIcon(node)}
                 {this.renderTitle(node)}
-                {saveDomainOnly && <div>Save Domain</div>}
+                {showSaveDomainOnly && <> <br/> <span className="small" style={{marginLeft: "1rem"}}> Save Domain</span> </>}
         </div>)
     }
 }
