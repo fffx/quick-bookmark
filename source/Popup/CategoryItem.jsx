@@ -1,6 +1,7 @@
 import * as React from 'react';
 import browser from 'webextension-polyfill';
 import * as helper from '../helper';
+// import ReactTypingEffect from 'react-typing-effect';
 
 import { 
     HiOutlineFolderAdd 
@@ -83,7 +84,7 @@ class CategoryItem extends React.Component {
 
     renderTitle(node){
         if(node.id === 'NEW'){
-            return (<> {node.parentTitle}{SEPARATOR}<span className="new-folder-name">{node.title}</span> </>)
+            return (<> {node.parentTitle}{SEPARATOR}<span className="new-folder-name">{node.title} </span> </>)
         } else {
             return `${node.titlePrefix || node.title} (${node.children.length})`
         }
@@ -101,7 +102,7 @@ class CategoryItem extends React.Component {
 
 
     render(){
-        const { node, focused } = this.props
+        const { node, focused, saveDomainOnly } = this.props
 
         const { id } = node
         const count = node.children.length
@@ -136,6 +137,7 @@ class CategoryItem extends React.Component {
             onClick={this.clickHandler}>
                 {this.renderIcon(node)}
                 {this.renderTitle(node)}
+                {saveDomainOnly && <div>Save Domain</div>}
         </div>)
     }
 }

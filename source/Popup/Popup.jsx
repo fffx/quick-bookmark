@@ -60,6 +60,7 @@ class Popup extends React.Component {
             rootNodes: [],
             currentActiveTab: null,
             cursor: 0,
+            saveDomainOnly: false,
             resorted: false, // resort after child check conatains current tab
         }
     }
@@ -95,7 +96,7 @@ class Popup extends React.Component {
     }
 
     // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
-    onKeydown = (e) => {
+    onKeyDown = (e) => {
         const { cursor, categoryNodes } = this.state
 
         console.debug('keydown', e.key)
@@ -115,6 +116,15 @@ class Popup extends React.Component {
             this.focusedCategoryItem.current.categoryItemRef.current.click();
         } else if(e.key === 'Delete' && this.focusedCategoryItem.current) {
             this.focusedCategoryItem.current.categoryItemRef.current.click();
+        }
+        this.setState({saveDomainOnly: e.shiftKey})
+    }
+
+//  TODO not fired
+    onKeyUp = (e) => {
+        console.log(`keyup ${e.key}, ${e.shiftKey}`)
+        if(e.shiftKey){
+            this.setState({saveDomainOnly: false})
         }
     }
 
@@ -163,13 +173,13 @@ class Popup extends React.Component {
                 let newCursor = 0
                 // console.debug(`best score: ${results[0]?.score}`)
                 if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
-                    console.debug('rootNodes', rootNodes.length, rootNodes)
+                    console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
                     const newBtns = []
 
                     texts[1] && filteredNodes.forEach( x=> {
                         newBtns.push({
                             title: texts[1], id: 'NEW',
-                            parentTitle: x.titlePrefix,
+                            parentTitle: x.titlePrefix || x.title,
                             parentId: x.id, children: []
                         })
                     })
@@ -222,7 +232,7 @@ class Popup extends React.Component {
     }
 
     render() {
-        const { categoryNodes, cursor, currentActiveTab, resorted } = this.state
+        const { categoryNodes, cursor, currentActiveTab, resorted, saveDomainOnly } = this.state
         // const filterInputValue = this.filterInput ? this.filterInput.value : ''
         // console.debug('categoryNodes', categoryNodes.length)
         return (
@@ -230,8 +240,10 @@ class Popup extends React.Component {
                 <input
                     id="search" ref={this.filterInput}
                     placeholder="Filter ..."
-                    onKeyDown={this.onKeydown} 
-                    onChange={this.onInputChange} 
+                    onKeyDown={this.onKeyDown}
+                    onKeyUp={this.onkeyUp }
+                    onChange={this.onInputChange}
+                    onBlur={({ target }) => target.focus()} 
                     autoFocus={true}></input>
                 <div id="wrapper">
                     {categoryNodes.map((node, index) => {
@@ -244,6 +256,7 @@ class Popup extends React.Component {
                             isLast={categoryNodes.length - 1 === index}
                             index={index}
                             resorted={resorted}
+                            saveDomainOnly={saveDomainOnly}
                             ref={cursor === index ? this.focusedCategoryItem : null}
                         />)
                     })}

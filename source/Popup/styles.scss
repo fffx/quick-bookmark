@@ -8,6 +8,7 @@ body {
   // font-size: larger;
   color: #333;
   transition: all 0.5s ease-in-out;
+  font-size: 1rem;
 }
 
 span.separator{
@@ -26,6 +27,7 @@ section{
     width: 100%;
     padding: 10px;
     border-radius: 10px;
+    font-size: 1rem;
 
     margin-bottom: 10px;
   }
@@ -42,7 +44,7 @@ section{
     
     > div {
       font-family: "Lucida Grande", Tahoma, sans-serif;
-      font-size: 1.2em;
+      font-size: 1rem;
       color: #666;
       display: flex;
       justify-content: left;
@@ -80,10 +82,11 @@ section{
         
         .new-folder-name{
           text-decoration: underline;
+          font-weight: bolder;
           border: 1px black;
-          padding-left: 0.5em;
-          color: green;
-          font-size: 1.2em;
+          padding-left: 0.5rem;
+          // color: green;
+          // font-size: 1rem;
         }
       }
 
