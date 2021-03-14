@@ -7,4 +7,4 @@
     Project template from [web-extension-starter](https://github.com/abhijithvijayan/web-extension-starter)
 * [Fang Xing](https://github.com/fffx)
 
-    Rewrite chrome-better-bookmark in React， and changed a log
+    Rewrite chrome-better-bookmark in React， and changed a lot
