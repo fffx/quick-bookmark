@@ -29,6 +29,7 @@ class CategoryItem extends React.Component {
             browser.bookmarks.create({
                 title: this.props.node.title,
                 parentId: this.props.node.parentId,
+                index: 0
             }).then((newNode) => this.processBookmark(newNode) )
         } else {
             this.processBookmark();

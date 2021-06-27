@@ -1,5 +1,13 @@
 # Change Log
+## [v1.3.8] - 2021-01-12
+### Added
+- Create folder at the top of the list.
 
+## [v1.3.7] - 2021-01-12
+### Added
+- Hold Shift key to save root url(domain) only
+### Fixed
+- Fix mouse click not working
 
 ## [v1.3.6] - 2021-01-12
 ### Added
