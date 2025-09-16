@@ -1,24 +1,23 @@
-import 'emoji-log';
-import * as helper from '../helper';
-import browser from 'webextension-polyfill';
+import "emoji-log";
+import * as helper from "../helper";
+import browser from "webextension-polyfill";
 
 var currentTab;
 var currentBookmark;
 
-
- function updateBadge(currentTab, bookmarks){
-  const text =  bookmarks.length > 0 ? `${bookmarks.length}` : ''
+function updateBadge(currentTab, bookmarks) {
+  const text = bookmarks.length > 0 ? `${bookmarks.length}` : "";
   browser.action.setBadgeText({
     tabId: currentTab.id,
-    text: text
-  })
+    text: text,
+  });
 }
 
 /*
  * Switches currentTab and currentBookmark to reflect the currently active tab
  */
 function updateActiveTab() {
-  console.log("updateActiveTab ---------------")
+  console.log("updateActiveTab ---------------");
   /*
   function isSupportedProtocol(urlString) {
     var supportedProtocols = ["https:", "http:", "ftp:", "file:"];
@@ -29,26 +28,30 @@ function updateActiveTab() {
  */
 
   function updateTab(tabs) {
-    console.log("updateTabs", tabs)
+    console.log("updateTabs", tabs);
     if (tabs[0]) {
       currentTab = tabs[0];
 
-      browser.bookmarks.getTree().then(bookmarkItems => {
-        let bookmarks = []
+      browser.bookmarks.getTree().then((bookmarkItems) => {
+        let bookmarks = [];
         const filter = (node) => {
-          if(node.url){
-            helper.isSameBookmarkUrl(currentTab.url, node.url) && bookmarks.push(node)
+          if (node.url) {
+            helper.isSameBookmarkUrl(currentTab.url, node.url) &&
+              bookmarks.push(node);
           } else {
-            node.children.forEach(x => filter(x) )
+            node.children.forEach((x) => filter(x));
           }
-         }
-        bookmarkItems.forEach( x=> filter(x) )
+        };
+        bookmarkItems.forEach((x) => filter(x));
         updateBadge(currentTab, bookmarks);
-      })
+      });
     }
   }
 
-  var gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
+  var gettingActiveTab = browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
   gettingActiveTab.then(updateTab);
 }
 
@@ -68,4 +71,4 @@ browser.tabs.onActivated.addListener(updateActiveTab);
 browser.windows.onFocusChanged.addListener(updateActiveTab);
 
 // update when the extension loads initially
-updateActiveTab()
+updateActiveTab();
