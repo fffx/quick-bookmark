@@ -3,8 +3,8 @@ import browser from 'webextension-polyfill';
 import * as helper from '../helper';
 // import ReactTypingEffect from 'react-typing-effect';
 
-import { 
-    HiOutlineFolderAdd 
+import {
+    HiOutlineFolderAdd
 } from "react-icons/hi";
 
 import { VscAdd, VscRemove } from 'react-icons/vsc'
@@ -17,14 +17,14 @@ class CategoryItem extends React.Component {
         this.categoryItemRef = React.createRef();
         this.scrollIntoView = helper.debounce(() => {
             this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
-        }, 100)
+        }, 50)
 
         this.state = {
             // containsCurrentTab: false
         }
     }
 
-    clickHandler = (event) => {        
+    clickHandler = (event) => {
         if (this.props.node.id === "NEW") {
             browser.bookmarks.create({
                 title: this.props.node.title,
@@ -92,7 +92,7 @@ class CategoryItem extends React.Component {
         }
     }
 
-/* 
+/*
     static getDerivedStateFromProps(props, state) {
         const { currentActiveTab}  = props
         if(currentActiveTab && props.node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentActiveTab.url)) ){
@@ -123,9 +123,9 @@ class CategoryItem extends React.Component {
         if(node.containsCurrentTab){
             classNames.push('contains-current-tab')
         }
-    
+
         // TODO hove show Delete, Rename, Move
-        let hintTitle = "" 
+        let hintTitle = ""
         if(id === "NEW") {
             `New ${node.title} under ${node.parentTitle} and bookmark current tab to it`
         } else {

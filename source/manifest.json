@@ -50,7 +50,10 @@
   },
 
   "background": {
-    "service_worker": "js/background.bundle.js"
+    "__firefox__scripts": [
+      "js/background.bundle.js"
+    ],
+    "__chrome|opera|edge__service_worker": "js/background.bundle.js"
   },
 
   "commands": {
