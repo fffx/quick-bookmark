@@ -27,6 +27,7 @@ function updateActiveTab() {
     return supportedProtocols.indexOf(url.protocol) != -1;
   }
  */
+
   function updateTab(tabs) {
     console.log("updateTabs", tabs)
     if (tabs[0]) {
