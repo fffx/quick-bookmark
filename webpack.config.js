@@ -81,6 +81,30 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /webextension-polyfill[\\\/]dist[\\\/]browser-polyfill\.js$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: {
+                    chrome: '88',
+                  },
+                  modules: false,
+                  useBuiltIns: false,
+                },
+              ],
+            ],
+            plugins: [
+              '@babel/plugin-transform-optional-chaining',
+              '@babel/plugin-transform-nullish-coalescing-operator',
+            ],
+          },
+        },
+      },
+      {
         type: 'javascript/auto', // prevent webpack handling json with its own loaders,
         test: /manifest\.json$/,
         use: {

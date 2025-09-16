@@ -2,46 +2,13 @@ import 'emoji-log';
 import * as helper from '../helper';
 import browser from 'webextension-polyfill';
 
-// browser.runtime.onInstalled.addListener(() => {
-//   console.emoji('🦄', 'extension installed');
-// });
-
-
-// browser.runtime.onMessage.addListener(
-//   function(request, sender, sendResponse) {
-//     // read `newIconPath` from request and read `tab.id` from sender
-//     chrome.browserAction.setIcon({
-//         path: request.newIconPath,
-//         tabId: sender.tab.id
-//     });
-// });
 var currentTab;
 var currentBookmark;
 
-/*
- * Updates the browserAction icon to reflect whether the current page
- * is already bookmarked.
- */
-/* function updateIcon() {
-  browser.browserAction.setIcon({
-    path: currentBookmark ? {
-      19: "icons/star-filled-19.png",
-      38: "icons/star-filled-38.png"
-    } : {
-      19: "icons/star-empty-19.png",
-      38: "icons/star-empty-38.png"
-    },
-    tabId: currentTab.id
-  });
-  */
- 
- function updateBadge(currentTab, bookmarks){ 
-  //  browser.browserAction.set Title({
-  //    title: currentBookmark ? 'Unbookmark it!' : 'Bookmark it!',
-  //    tabId: currentTab.id
-  //  }); 
+
+ function updateBadge(currentTab, bookmarks){
   const text =  bookmarks.length > 0 ? `${bookmarks.length}` : ''
-  browser.browserAction.setBadgeText({
+  browser.action.setBadgeText({
     tabId: currentTab.id,
     text: text
   })
@@ -52,7 +19,7 @@ var currentBookmark;
  */
 function updateActiveTab() {
   console.log("updateActiveTab ---------------")
-  /*   
+  /*
   function isSupportedProtocol(urlString) {
     var supportedProtocols = ["https:", "http:", "ftp:", "file:"];
     var url = document.createElement('a');
@@ -64,11 +31,11 @@ function updateActiveTab() {
     console.log("updateTabs", tabs)
     if (tabs[0]) {
       currentTab = tabs[0];
-      
+
       browser.bookmarks.getTree().then(bookmarkItems => {
-        let bookmarks = []  
-        const filter = (node) => { 
-          if(node.url){ 
+        let bookmarks = []
+        const filter = (node) => {
+          if(node.url){
             helper.isSameBookmarkUrl(currentTab.url, node.url) && bookmarks.push(node)
           } else {
             node.children.forEach(x => filter(x) )
@@ -79,7 +46,7 @@ function updateActiveTab() {
       })
     }
   }
-  
+
   var gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
   gettingActiveTab.then(updateTab);
 }
