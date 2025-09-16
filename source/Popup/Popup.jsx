@@ -9,20 +9,20 @@ import './styles.scss';
 
 function setPopupStyle(theme) {
     const myElement = document.getElementById("popup");
-  
+
     if (theme.colors && theme.colors.frame) {
       document.body.style.backgroundColor =
         theme.colors.frame;
     } else {
       document.body.style.backgroundColor = "white";
     }
-  
+
     if (theme.colors && theme.colors.toolbar) {
       myElement.style.backgroundColor = theme.colors.toolbar;
     } else {
       myElement.style.backgroundColor = "#ebebeb";
     }
-    
+
     if (theme.colors && theme.colors.toolbar_text) {
       myElement.style.color = theme.colors.toolbar_text;
     } else {
@@ -35,6 +35,7 @@ function setPopupStyle(theme) {
 const filterRecursively = (nodeArray, childrenProperty, filterFn, results, titlePrefix) => {
     results = results || [];
     nodeArray.forEach(function (node) {
+        // console.log("node..... ", node)
         node.titlePrefix = titlePrefix ? `${titlePrefix}${SEPARATOR}${node.title}` : null
 
         if (filterFn(node)) results.push(node);
@@ -52,6 +53,7 @@ class Popup extends React.Component {
         this.focusedCategoryItem = React.createRef();
         this.categoryItemRefs =  []
         this.filterInput = React.createRef();
+        this.browserName = helper.getBrowserName()
 
         const isSupportPinyin = Pinyin.isSupported()
         this.state = {
@@ -73,7 +75,7 @@ class Popup extends React.Component {
         alert(error)
     }
     updateCategoryNode = (index, newNodeProps) =>{
-        // Yeah update categoryNodes directly, 
+        // Yeah update categoryNodes directly,
         console.debug('update category node', index, newNodeProps)
         this.state.categoryNodes[index] = Object.assign(this.state.categoryNodes[index], newNodeProps)
     }
@@ -146,10 +148,16 @@ class Popup extends React.Component {
     resetcategoryNodes() {
         const { isSupportPinyin, cursor } = this.state
         // const currentTab = await browser.tabs.query({'active': true, 'currentWindow': true})[0]
+        console.log("get bookmar tree ..........")
         browser.bookmarks.getTree().then(bookmarkItems => {
-            const categoryNodes = filterRecursively(bookmarkItems, "children", function (node) {
-                return !node.url && node.id > 0;
-            }).sort(function (a, b) {
+            console.log("browserName", this.browserName)
+            const categoryNodes = filterRecursively(bookmarkItems, "children", (node) => {
+                if (this.browserName == "firefox") {
+                    return node.type == "folder";
+                } else {
+                    return !node.url && node.id > 0
+                }
+            }).sort((a, b) => {
                 return b.dateGroupModified - a.dateGroupModified;
             })
 
@@ -163,7 +171,7 @@ class Popup extends React.Component {
                     } else {
                         x.pinyinTitle = x.title
                     }
-                    x.firstLetter = x.pinyinTitle.match(/\b\w/g).join('')
+                    x.firstLetter = x.pinyinTitle.match(/\b\w/g)?.join('')
                     // console.debug(`pinyinTitle: ${x.pinyinTitle}, firstLetter: ${x.firstLetter}`)
                     return x;
                 });
@@ -241,7 +249,7 @@ class Popup extends React.Component {
             })
         })
 
- 
+
         //  Only firefox support this
         // browser.theme.getCurrent().then( (theme) => setPopupStyle(theme) )
     }
@@ -258,7 +266,7 @@ class Popup extends React.Component {
                     onKeyDown={this.onKeyDown}
                     onKeyUp={this.onkeyUp }
                     onChange={this.onInputChange}
-                    onBlur={({ target }) => target.focus()} 
+                    onBlur={({ target }) => target.focus()}
                     autoFocus={true}></input>
                 <div id="wrapper">
                     {categoryNodes.map((node, index) => {

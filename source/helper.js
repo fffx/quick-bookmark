@@ -26,3 +26,11 @@ export const isSameBookmarkUrl = (url1, url2) => {
   if (!url1 || !url2) return false;
   return removeHashtag(url1) === removeHashtag(url2);
 };
+
+export const getBrowserName = () => {
+  const ua = navigator.userAgent;
+  if (ua.includes('Edg/')) return 'edge';
+  if (ua.includes('OPR/') || ua.includes('Opera')) return 'opera';
+  if (ua.includes('Firefox')) return 'firefox';
+  return 'chrome';
+}

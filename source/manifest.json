@@ -60,11 +60,11 @@
     "_execute_action": {
 
       "__firefox__suggested_key": {
-        "default": "Ctrl+M",
-        "windows": "Ctrl+M",
-        "mac": "Command+M",
-        "chromeos": "Ctrl+M",
-        "linux": "Ctrl+M"
+        "default": "Ctrl+B",
+        "windows": "Ctrl+B",
+        "mac": "Ctrl+P",
+        "chromeos": "Ctrl+B",
+        "linux": "Ctrl+B"
       },
       "__chrome__suggested_key": {
         "default": "Ctrl+B",

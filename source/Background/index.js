@@ -17,7 +17,7 @@ function updateBadge(currentTab, bookmarks) {
  * Switches currentTab and currentBookmark to reflect the currently active tab
  */
 function updateActiveTab() {
-  console.log("updateActiveTab ---------------");
+ // console.log("updateActiveTab ---------------");
   /*
   function isSupportedProtocol(urlString) {
     var supportedProtocols = ["https:", "http:", "ftp:", "file:"];
@@ -28,7 +28,7 @@ function updateActiveTab() {
  */
 
   function updateTab(tabs) {
-    console.log("updateTabs", tabs);
+    // console.log("updateTabs", tabs);
     if (tabs[0]) {
       currentTab = tabs[0];
 
