@@ -7,6 +7,7 @@ import * as helper from '../helper';
 
 import './styles.scss';
 
+
 function setPopupStyle(theme) {
     const myElement = document.getElementById("popup");
 
@@ -36,11 +37,19 @@ const filterRecursively = (nodeArray, childrenProperty, filterFn, results, title
     results = results || [];
     nodeArray.forEach(function (node) {
         // console.log("node..... ", node)
+        // firefox:  { id: "SbAW3O67bbOA", title: "App bars: top - Material Design", index: 5, dateAdded: 1737189893104, type: "bookmark", url: "https://material.io/components/app-bars-top/android#theming-the-top-app-bar", parentId: "AYquIyIG1OBd" }
+        // if (helper.getBrowserName() == "firefox") {
+        //     titlePrefix = browser.bookmarks.get(node.parentId).then(node => node.title)
+        // }
         node.titlePrefix = titlePrefix ? `${titlePrefix}${SEPARATOR}${node.title}` : null
 
         if (filterFn(node)) results.push(node);
 
-        var nextPrefix = node.id > 0 ? node.titlePrefix || node.title : ''
+        if (helper.getBrowserName() == "firefox") {
+            var nextPrefix = node.type == "folder" ? node.title : ""
+        } else {
+            var nextPrefix = node.id > 0 ? node.titlePrefix || node.title : ""
+        }
         if (node.children) filterRecursively(node.children, childrenProperty, filterFn, results, nextPrefix);
     });
 
@@ -53,7 +62,6 @@ class Popup extends React.Component {
         this.focusedCategoryItem = React.createRef();
         this.categoryItemRefs =  []
         this.filterInput = React.createRef();
-        this.browserName = helper.getBrowserName()
 
         const isSupportPinyin = Pinyin.isSupported()
         this.state = {
@@ -150,10 +158,9 @@ class Popup extends React.Component {
         // const currentTab = await browser.tabs.query({'active': true, 'currentWindow': true})[0]
         console.log("get bookmar tree ..........")
         browser.bookmarks.getTree().then(bookmarkItems => {
-            console.log("browserName", this.browserName)
             const categoryNodes = filterRecursively(bookmarkItems, "children", (node) => {
-                if (this.browserName == "firefox") {
-                    return node.type == "folder";
+                if (helper.getBrowserName() == "firefox") {
+                    return node.type == "folder" && node.title;
                 } else {
                     return !node.url && node.id > 0
                 }
@@ -266,6 +273,7 @@ class Popup extends React.Component {
                     onKeyDown={this.onKeyDown}
                     onKeyUp={this.onkeyUp }
                     onChange={this.onInputChange}
+                    autoComplete="off"
                     onBlur={({ target }) => target.focus()}
                     autoFocus={true}></input>
                 <div id="wrapper">

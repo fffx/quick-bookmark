@@ -1,6 +1,7 @@
+/* global setTimeout, clearTimeout, navigator */
 import browser from "webextension-polyfill";
 
-export function debounce(func, wait = 200) {
+export function debounce(func, wait = 100) {
   let timeout;
   return function (...args) {
     clearTimeout(timeout);
@@ -8,6 +9,25 @@ export function debounce(func, wait = 200) {
       func.apply(this, args);
     }, wait);
   };
+}
+
+// Cache for getBrowserName to avoid repeated detection
+let cachedBrowserName;
+export function getBrowserName() {
+  if (cachedBrowserName) return cachedBrowserName;
+
+  const ua = navigator.userAgent || "";
+  if (ua.includes("Edg/")) {
+    cachedBrowserName = "edge";
+  } else if (ua.includes("OPR/") || ua.includes("Opera")) {
+    cachedBrowserName = "opera";
+  } else if (ua.includes("Firefox")) {
+    cachedBrowserName = "firefox";
+  } else {
+    cachedBrowserName = "chrome";
+  }
+  console.log("cachedBrowserName ---", cachedBrowserName);
+  return cachedBrowserName;
 }
 
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/getCurrent
@@ -26,11 +46,3 @@ export const isSameBookmarkUrl = (url1, url2) => {
   if (!url1 || !url2) return false;
   return removeHashtag(url1) === removeHashtag(url2);
 };
-
-export const getBrowserName = () => {
-  const ua = navigator.userAgent;
-  if (ua.includes('Edg/')) return 'edge';
-  if (ua.includes('OPR/') || ua.includes('Opera')) return 'opera';
-  if (ua.includes('Firefox')) return 'firefox';
-  return 'chrome';
-}

@@ -22,9 +22,9 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
 
-  "__chrome|firefox__author": "Fang Xing",
+  "__chrome|firefox__author": "Fangxing",
   "__opera__developer": {
-    "name": "Fang Xing"
+    "name": "Fangxing"
   },
 
   "__firefox__applications": {
@@ -58,11 +58,10 @@
 
   "commands": {
     "_execute_action": {
-
       "__firefox__suggested_key": {
         "default": "Ctrl+B",
         "windows": "Ctrl+B",
-        "mac": "Ctrl+P",
+        "mac": "Alt+B",
         "chromeos": "Ctrl+B",
         "linux": "Ctrl+B"
       },
