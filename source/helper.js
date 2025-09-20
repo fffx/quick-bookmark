@@ -26,7 +26,7 @@ export function getBrowserName() {
   } else {
     cachedBrowserName = "chrome";
   }
-  console.log("cachedBrowserName ---", cachedBrowserName);
+  // console.log("cachedBrowserName ---", cachedBrowserName);
   return cachedBrowserName;
 }
 
@@ -44,5 +44,6 @@ export const removeHashtag = (url) => url.split("#")[0];
 
 export const isSameBookmarkUrl = (url1, url2) => {
   if (!url1 || !url2) return false;
+  console.log('isSameBookmarkUrl===============', url1, url2, removeHashtag(url1) === removeHashtag(url2))
   return removeHashtag(url1) === removeHashtag(url2);
 };

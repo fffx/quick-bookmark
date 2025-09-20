@@ -7,32 +7,6 @@ import * as helper from '../helper';
 
 import './styles.scss';
 
-
-function setPopupStyle(theme) {
-    const myElement = document.getElementById("popup");
-
-    if (theme.colors && theme.colors.frame) {
-      document.body.style.backgroundColor =
-        theme.colors.frame;
-    } else {
-      document.body.style.backgroundColor = "white";
-    }
-
-    if (theme.colors && theme.colors.toolbar) {
-      myElement.style.backgroundColor = theme.colors.toolbar;
-    } else {
-      myElement.style.backgroundColor = "#ebebeb";
-    }
-
-    if (theme.colors && theme.colors.toolbar_text) {
-      myElement.style.color = theme.colors.toolbar_text;
-    } else {
-      myElement.style.color = "black";
-    }
-}
-
-
-
 const filterRecursively = (nodeArray, childrenProperty, filterFn, results, titlePrefix) => {
     results = results || [];
     nodeArray.forEach(function (node) {
@@ -160,7 +134,8 @@ class Popup extends React.Component {
         browser.bookmarks.getTree().then(bookmarkItems => {
             const categoryNodes = filterRecursively(bookmarkItems, "children", (node) => {
                 if (helper.getBrowserName() == "firefox") {
-                    return node.type == "folder" && node.title;
+                    return !node.url && node.title;
+                    // TODO other bookmarks -> frontend -> sub dirs not showing under root
                 } else {
                     return !node.url && node.id > 0
                 }
@@ -241,9 +216,13 @@ class Popup extends React.Component {
             this.filterInput.current.focus()
         })
 
+        console.log('get current tab===============')
         helper.getCurrentTab().then(currentTab => {
             let newCategoryNodes = [...this.state.categoryNodes]
-            newCategoryNodes.forEach((node) => {
+            // todo this returns 0 tabs in firefox
+            console.log('got current tab===============', currentTab.url, newCategoryNodes.length)
+            newCategoryNodes.forEach(node => {
+                console.log('containsCurrentTab===============', node.title, node.children.map( x => x.url))
                 if(node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentTab.url))){
                     console.log('containsCurrentTab===============', node.title)
                     node.containsCurrentTab = true
@@ -252,13 +231,9 @@ class Popup extends React.Component {
 
             this.setState({
                 currentActiveTab: currentTab,
-                categoryNodes: newCategoryNodes
+                categoryNodes: [...newCategoryNodes]
             })
-        })
-
-
-        //  Only firefox support this
-        // browser.theme.getCurrent().then( (theme) => setPopupStyle(theme) )
+        }, (error) => console.log("Failed to get current tab", error))
     }
 
     render() {

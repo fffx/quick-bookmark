@@ -92,18 +92,6 @@ class CategoryItem extends React.Component {
         }
     }
 
-/*
-    static getDerivedStateFromProps(props, state) {
-        const { currentActiveTab}  = props
-        if(currentActiveTab && props.node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentActiveTab.url)) ){
-            return {containsCurrentTab: true}
-        } else {
-            return {containsCurrentTab: false}
-        }
-    } */
-
-
-
     render(){
         const { node, focused, saveDomainOnly } = this.props
 
