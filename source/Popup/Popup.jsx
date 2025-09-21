@@ -52,7 +52,43 @@ class Popup extends React.Component {
 
 
     onInputChange = (e) => {
-        this.delayedFilter(e);
+        helper.debounce(event => {
+            const text = event.target.value
+            if (text && text.length > 0) {
+                const texts = text.split('/').map(x => x.trim())
+                const { rootNodes } = this.state
+                const filteredNodes = this.state.fuzzySearch.search(texts[0])
+                let newCursor = 0
+                // console.debug(`best score: ${results[0]?.score}`)
+                if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
+                    console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
+                    const newBtns = []
+
+                    texts[1] && filteredNodes.forEach( x=> {
+                        newBtns.push({
+                            title: texts[1], id: 'NEW',
+                            parentTitle: x.titlePrefix || x.title,
+                            parentId: x.id, children: []
+                        })
+                    })
+                    rootNodes.map( x => {
+                        newBtns.push({
+                            title: text, id: 'NEW',
+                            parentTitle: x.title,
+                            parentId: x.id, children: []
+                        })
+                    })
+                    if(!texts[1] && filteredNodes.length > 0) newCursor += newBtns.length
+                    // console.debug("Not found ...", text)
+                    this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
+                } else {
+                    this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
+                }
+
+            } else {
+                this.initBookmarkNodes()
+            }
+        }, 100)(e);
     }
     onRejected = (error) => {
         alert(error)
@@ -173,44 +209,6 @@ class Popup extends React.Component {
         }, this.onRejected)
     }
     componentDidMount() {
-        this.delayedFilter = helper.debounce(event => {
-            const text = event.target.value
-            if (text && text.length > 0) {
-                const texts = text.split('/').map(x => x.trim())
-                const { rootNodes } = this.state
-                const filteredNodes = this.state.fuzzySearch.search(texts[0])
-                let newCursor = 0
-                // console.debug(`best score: ${results[0]?.score}`)
-                if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
-                    console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
-                    const newBtns = []
-
-                    texts[1] && filteredNodes.forEach( x=> {
-                        newBtns.push({
-                            title: texts[1], id: 'NEW',
-                            parentTitle: x.titlePrefix || x.title,
-                            parentId: x.id, children: []
-                        })
-                    })
-                    rootNodes.map( x => {
-                        newBtns.push({
-                            title: text, id: 'NEW',
-                            parentTitle: x.title,
-                            parentId: x.id, children: []
-                        })
-                    })
-                    if(!texts[1] && filteredNodes.length > 0) newCursor += newBtns.length
-                    // console.debug("Not found ...", text)
-                    this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
-                } else {
-                    this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
-                }
-
-            } else {
-                this.initBookmarkNodes()
-            }
-        }, 100);
-
         // TODO remember last filter?
         this.initBookmarkNodes()
 
