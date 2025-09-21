@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { CategoryItem, SEPARATOR} from './CategoryItem'
 import Pinyin from 'tiny-pinyin'
 import browser from 'webextension-polyfill';
