@@ -46,6 +46,7 @@ class Popup extends React.Component {
             cursor: 0,
             saveDomainOnly: false,
             resorted: false, // resort after child check conatains current tab
+            isLoadingCurrentTab: true, // Add loading state
         }
     }
 
@@ -129,13 +130,16 @@ class Popup extends React.Component {
 
     resetcategoryNodes() {
         const { isSupportPinyin, cursor } = this.state
-        // const currentTab = await browser.tabs.query({'active': true, 'currentWindow': true})[0]
-        console.log("get bookmar tree ..........")
-        browser.bookmarks.getTree().then(bookmarkItems => {
+
+        // Load bookmarks and current tab in parallel
+        Promise.all([
+            browser.bookmarks.getTree(),
+            helper.getCurrentTab().catch(() => null) // Don't fail if tab query fails
+        ]).then(([bookmarkItems, currentTab]) => {
             const categoryNodes = filterRecursively(bookmarkItems, "children", (node) => {
+                // TODO other bookmarks -> frontend -> sub dirs not showing under root
                 if (helper.getBrowserName() == "firefox") {
                     return !node.url && node.title;
-                    // TODO other bookmarks -> frontend -> sub dirs not showing under root
                 } else {
                     return !node.url && node.id > 0
                 }
@@ -159,10 +163,21 @@ class Popup extends React.Component {
                 });
             }
 
+            // Process current tab logic here
+            categoryNodes.forEach(node => {
+                node.containsCurrentTab = false
+                if (currentTab && currentTab.url) {
+                    if(node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentTab.url))){
+                        node.containsCurrentTab = true
+                    }
+                }
+            })
+
             this.setState({
                 resorted: false,
                 rootNodes: bookmarkItems[0].children,
                 categoryNodes: categoryNodes,
+                currentActiveTab: currentTab,
                 cursor: categoryNodes.length > cursor ? cursor : 0,
                 fuzzySearch: new fuzzySearch(categoryNodesWithPinyin || categoryNodes)
             })
@@ -215,25 +230,6 @@ class Popup extends React.Component {
             // TODO this not working
             this.filterInput.current.focus()
         })
-
-        console.log('get current tab===============')
-        helper.getCurrentTab().then(currentTab => {
-            let newCategoryNodes = [...this.state.categoryNodes]
-            // todo this returns 0 tabs in firefox
-            console.log('got current tab===============', currentTab.url, newCategoryNodes.length)
-            newCategoryNodes.forEach(node => {
-                console.log('containsCurrentTab===============', node.title, node.children.map( x => x.url))
-                if(node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentTab.url))){
-                    console.log('containsCurrentTab===============', node.title)
-                    node.containsCurrentTab = true
-                }
-            })
-
-            this.setState({
-                currentActiveTab: currentTab,
-                categoryNodes: [...newCategoryNodes]
-            })
-        }, (error) => console.log("Failed to get current tab", error))
     }
 
     render() {
