@@ -120,7 +120,7 @@ class Popup extends React.Component {
         }
     }
 
-    resetcategoryNodes() {
+    initBookmarkNodes() {
         const { isSupportPinyin, cursor } = this.state
 
         // Load bookmarks and current tab in parallel
@@ -135,7 +135,7 @@ class Popup extends React.Component {
                 } else {
                     return !node.url && node.id > 0
                 }
-            }).sort(helper.sortNodes)
+            })
 
             // wrapper.style.width = wrapper.clientWidth + "px";
             let categoryNodesWithPinyin = null
@@ -164,9 +164,8 @@ class Popup extends React.Component {
             })
 
             this.setState({
-                resorted: false,
                 rootNodes: bookmarkItems[0].children,
-                categoryNodes: categoryNodes,
+                categoryNodes: categoryNodes.sort(helper.sortNodes),
                 currentActiveTab: currentTab,
                 cursor: categoryNodes.length > cursor ? cursor : 0,
                 fuzzySearch: new fuzzySearch(categoryNodesWithPinyin || categoryNodes)
@@ -208,12 +207,12 @@ class Popup extends React.Component {
                 }
 
             } else {
-                this.resetcategoryNodes()
+                this.initBookmarkNodes()
             }
         }, 100);
 
         // TODO remember last filter?
-        this.resetcategoryNodes()
+        this.initBookmarkNodes()
 
         browser.windows.onFocusChanged.addListener(() => {
             // console.debug('focus--------------------')
