@@ -68,15 +68,7 @@ class Popup extends React.Component {
         const {categoryNodes} = this.state
         this.setState({
             resorted: true,
-            categoryNodes: categoryNodes.sort( (a, b) => {
-                if(a.containsCurrentTab && !b.containsCurrentTab){
-                    return -1
-                } else if(b.containsCurrentTab && !a.containsCurrentTab){
-                    return 1
-                } else {
-                    return b.dateGroupModified - a.dateGroupModified;
-                }
-            })
+            categoryNodes: categoryNodes.sort(helper.sortNodes)
         })
     }
 
@@ -143,9 +135,7 @@ class Popup extends React.Component {
                 } else {
                     return !node.url && node.id > 0
                 }
-            }).sort((a, b) => {
-                return b.dateGroupModified - a.dateGroupModified;
-            })
+            }).sort(helper.sortNodes)
 
             // wrapper.style.width = wrapper.clientWidth + "px";
             let categoryNodesWithPinyin = null

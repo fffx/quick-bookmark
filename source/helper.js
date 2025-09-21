@@ -44,6 +44,17 @@ export const removeHashtag = (url) => url.split("#")[0];
 
 export const isSameBookmarkUrl = (url1, url2) => {
   if (!url1 || !url2) return false;
-  console.log('isSameBookmarkUrl===============', url1, url2, removeHashtag(url1) === removeHashtag(url2))
+  // console.log('isSameBookmarkUrl===============', url1, url2, removeHashtag(url1) === removeHashtag(url2))
   return removeHashtag(url1) === removeHashtag(url2);
 };
+
+
+export const sortNodes = (a, b) => {
+  if (a.containsCurrentTab && !b.containsCurrentTab) {
+    return -1;
+  } else if (b.containsCurrentTab && !a.containsCurrentTab) {
+    return 1;
+  } else {
+    return b.dateGroupModified - a.dateGroupModified;
+  }
+}
