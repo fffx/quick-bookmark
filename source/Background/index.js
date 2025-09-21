@@ -2,9 +2,8 @@ import "emoji-log";
 import * as helper from "../helper";
 import browser from "webextension-polyfill";
 
+// show number of bookmark folders contain current tab
 var currentTab;
-var currentBookmark;
-
 function updateBadge(currentTab, bookmarks) {
   const text = bookmarks.length > 0 ? `${bookmarks.length}` : "";
   browser.action.setBadgeText({
@@ -17,35 +16,25 @@ function updateBadge(currentTab, bookmarks) {
  * Switches currentTab and currentBookmark to reflect the currently active tab
  */
 function updateActiveTab() {
- // console.log("updateActiveTab ---------------");
-  /*
-  function isSupportedProtocol(urlString) {
-    var supportedProtocols = ["https:", "http:", "ftp:", "file:"];
-    var url = document.createElement('a');
-    url.href = urlString;
-    return supportedProtocols.indexOf(url.protocol) != -1;
-  }
- */
-
   function updateTab(tabs) {
     // console.log("updateTabs", tabs);
-    if (tabs[0]) {
-      currentTab = tabs[0];
-
-      browser.bookmarks.getTree().then((bookmarkItems) => {
-        let bookmarks = [];
-        const filter = (node) => {
-          if (node.url) {
-            helper.isSameBookmarkUrl(currentTab.url, node.url) &&
-              bookmarks.push(node);
-          } else {
-            node.children.forEach((x) => filter(x));
-          }
-        };
-        bookmarkItems.forEach((x) => filter(x));
-        updateBadge(currentTab, bookmarks);
-      });
+    if (!tabs[0]) {
+      return;
     }
+    currentTab = tabs[0];
+    browser.bookmarks.getTree().then((bookmarkItems) => {
+      let bookmarks = [];
+      const filter = (node) => {
+        if (node.url) {
+          helper.isSameBookmarkUrl(currentTab.url, node.url) &&
+            bookmarks.push(node);
+        } else {
+          node.children.forEach((x) => filter(x));
+        }
+      };
+      bookmarkItems.forEach((x) => filter(x));
+      updateBadge(currentTab, bookmarks);
+    });
   }
 
   var gettingActiveTab = browser.tabs.query({
