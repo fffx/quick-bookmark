@@ -88,7 +88,11 @@ class CategoryItem extends React.Component {
         if(node.id === 'NEW'){
             return (<> {node.parentTitle}{SEPARATOR}<span className="new-folder-name">{node.title} </span> </>)
         } else {
-            return `${node.titlePrefix || node.title} (${node.children.length})`
+            if(node.titlePrefix) {
+                return `${node.titlePrefix}${SEPARATOR}${node.title} (${node.children.length})`
+            } else {
+                return `${node.title} (${node.children.length})`
+            }
         }
     }
 

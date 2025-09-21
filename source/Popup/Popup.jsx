@@ -6,30 +6,6 @@ import fuzzySearch from './searchEngine'
 import * as helper from '../helper';
 
 import './styles.scss';
-
-const filterRecursively = (nodeArray, childrenProperty, filterFn, results, titlePrefix) => {
-    results = results || [];
-    nodeArray.forEach(function (node) {
-        // console.log("node..... ", node)
-        // firefox:  { id: "SbAW3O67bbOA", title: "App bars: top - Material Design", index: 5, dateAdded: 1737189893104, type: "bookmark", url: "https://material.io/components/app-bars-top/android#theming-the-top-app-bar", parentId: "AYquIyIG1OBd" }
-        // if (helper.getBrowserName() == "firefox") {
-        //     titlePrefix = browser.bookmarks.get(node.parentId).then(node => node.title)
-        // }
-        node.titlePrefix = titlePrefix ? `${titlePrefix}${SEPARATOR}${node.title}` : null
-
-        if (filterFn(node)) results.push(node);
-
-        if (helper.getBrowserName() == "firefox") {
-            var nextPrefix = node.type == "folder" ? node.title : ""
-        } else {
-            var nextPrefix = node.id > 0 ? node.titlePrefix || node.title : ""
-        }
-        if (node.children) filterRecursively(node.children, childrenProperty, filterFn, results, nextPrefix);
-    });
-
-    return results;
-
-};
 class Popup extends React.Component {
     constructor(props) {
         super(props)
@@ -112,7 +88,7 @@ class Popup extends React.Component {
     onKeyDown = (e) => {
         const { cursor, categoryNodes } = this.state
         this.checkShiftHolding(e)
-        console.debug('keydown', e.key)
+        // console.debug('keydown', e.key)
         // arrow up/down button should select next/previous list element
         if (e.key === "ArrowUp") {
             e.preventDefault()
@@ -133,6 +109,7 @@ class Popup extends React.Component {
     }
 
 
+    // TODO refactor
     checkShiftHolding(e){
         if(e.shiftKey && !this.state.saveDomainOnly){
             this.setState({saveDomainOnly: true})
@@ -164,7 +141,7 @@ class Popup extends React.Component {
             browser.bookmarks.getTree(),
             helper.getCurrentTab().catch(() => null) // Don't fail if tab query fails
         ]).then(([bookmarkItems, currentTab]) => {
-            const categoryNodes = filterRecursively(bookmarkItems, "children", (node) => {
+            const categoryNodes = helper.filterRecursively(bookmarkItems, null, (node) => {
                 // TODO other bookmarks -> frontend -> sub dirs not showing under root
                 if (helper.getBrowserName() == "firefox") {
                     return !node.url && node.title;
