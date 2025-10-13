@@ -3,9 +3,7 @@ import browser from 'webextension-polyfill';
 import * as helper from '../helper';
 // import ReactTypingEffect from 'react-typing-effect';
 
-import {
-    HiOutlineFolderAdd
-} from "react-icons/hi";
+import { HiOutlineFolderAdd } from "react-icons/hi";
 
 import { VscAdd, VscRemove } from 'react-icons/vsc'
 
@@ -15,9 +13,9 @@ class CategoryItem extends React.Component {
     constructor(props){
         super(props)
         this.categoryItemRef = React.createRef();
-        this.scrollIntoView = helper.debounce(() => {
+        this.scrollIntoView = () => {
             this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
-        }, 50)
+        }
 
         this.state = {
             // containsCurrentTab: false
