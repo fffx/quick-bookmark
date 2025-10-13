@@ -111,24 +111,12 @@ class Popup extends React.Component {
 
     // TODO refactor
     checkShiftHolding(e){
-        if(e.shiftKey && !this.state.saveDomainOnly){
+        if(e.altKey){
             this.setState({saveDomainOnly: true})
         }
-
-        this._resetSaveDomainOnlyTimeout && clearTimeout(this._resetSaveDomainOnlyTimeout)
-        if(e.shiftKey){
-            this._resetSaveDomainOnlyTimeout = setTimeout(() => {
-                console.log("00000000000000000000000000 reset   ")
-                this.setState({saveDomainOnly: false})
-            }, 500)
-        } else if(this.state.saveDomainOnly) {
-            this.setState({saveDomainOnly: false})
-        }
     }
-    //  TODO not fired
     onKeyUp = (e) => {
-        // console.log(`keyup ${e.key}, ${e.shiftKey}`)
-        if(e.shiftKey){
+        if(e.key === 'Alt'){
             this.setState({saveDomainOnly: false})
         }
     }
@@ -206,7 +194,7 @@ class Popup extends React.Component {
                     id="search" ref={this.filterInput}
                     placeholder="Filter ..."
                     onKeyDown={this.onKeyDown}
-                    onKeyUp={this.onkeyUp }
+                    onKeyUp={this.onKeyUp}
                     onChange={this.onInputChange}
                     autoComplete="off"
                     onBlur={({ target }) => target.focus()}
