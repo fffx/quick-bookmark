@@ -26,7 +26,7 @@
   "dependencies": {
     "advanced-css-reset": "^1.2.2",
     "emoji-log": "^1.0.2",
-    "fuse.js": "^6.6.2",
+    "fuse.js": "^7.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^4.12.0",
