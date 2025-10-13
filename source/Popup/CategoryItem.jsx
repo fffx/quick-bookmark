@@ -26,8 +26,7 @@ class CategoryItem extends React.Component {
         if (this.props.node.id === "NEW") {
             browser.bookmarks.create({
                 title: this.props.node.title,
-                parentId: this.props.node.parentId,
-                index: 0
+                parentId: this.props.node.parentId
             }).then((newNode) => this.processBookmark(newNode) )
         } else {
             this.processBookmark();
