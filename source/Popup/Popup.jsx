@@ -31,18 +31,22 @@ class Popup extends React.Component {
         helper.debounce(event => {
             const text = event.target.value
             if (text && text.length > 0) {
-                const texts = text.split('/').map(x => x.trim())
+                const texts = text.split("/").map(x => x.trim())
+                let lastPart = null
+                if(texts.length > 1) {
+                    lastPart = lastParts.pop()
+                }
                 const { rootNodes } = this.state
-                const filteredNodes = this.state.fuzzySearch.search(texts[0])
+                const filteredNodes = this.state.fuzzySearch.search(text)
                 let newCursor = 0
                 // console.debug(`best score: ${results[0]?.score}`)
                 if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
                     console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
                     const newBtns = []
 
-                    texts[1] && filteredNodes.forEach( x=> {
+                    lastPart && filteredNodes.forEach( x=> {
                         newBtns.push({
-                            title: texts[1], id: 'NEW',
+                            title: lastPart, id: 'NEW',
                             parentTitle: x.titlePrefix || x.title,
                             parentId: x.id, children: []
                         })
@@ -54,7 +58,7 @@ class Popup extends React.Component {
                             parentId: x.id, children: []
                         })
                     })
-                    if(!texts[1] && filteredNodes.length > 0) newCursor += newBtns.length
+                    if(!lastPart && filteredNodes.length > 0) newCursor += newBtns.length
                     // console.debug("Not found ...", text)
                     this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
                 } else {
@@ -108,8 +112,6 @@ class Popup extends React.Component {
         }
     }
 
-
-    // TODO refactor
     checkShiftHolding(e){
         if(e.altKey){
             this.setState({saveDomainOnly: true})
@@ -130,7 +132,6 @@ class Popup extends React.Component {
             helper.getCurrentTab().catch(() => null) // Don't fail if tab query fails
         ]).then(([bookmarkItems, currentTab]) => {
             const categoryNodes = helper.filterRecursively(bookmarkItems, null, (node) => {
-                // TODO other bookmarks -> frontend -> sub dirs not showing under root
                 if (helper.getBrowserName() == "firefox") {
                     return !node.url && node.title;
                 } else {
@@ -148,8 +149,7 @@ class Popup extends React.Component {
                     } else {
                         x.pinyinTitle = x.title
                     }
-                    x.firstLetter = x.pinyinTitle.match(/\b\w/g)?.join('')
-                    // console.debug(`pinyinTitle: ${x.pinyinTitle}, firstLetter: ${x.firstLetter}`)
+
                     return x;
                 });
             }
@@ -219,10 +219,5 @@ class Popup extends React.Component {
         );
     }
 }
-
-// TOOD
-/*
- * edit, remove, move node
-*/
 
 export default Popup;

@@ -25,6 +25,15 @@ export const filterRecursively = (nodeArray, parentNode, filterFn, results) => {
       node.titlePrefix = parentNode.title;
     }
 
+    if (node.url) {
+      node.dirPath = `${node.titlePrefix}${SEPARATOR}${node.title}`;
+    } else if (node.titlePrefix) {
+      node.dirPath = node.titlePrefix;
+    } else {
+      node.dirPath = node.title;
+    }
+    // console.log("node.dirPath", node.dirPath);
+
     if (filterFn(node)) results.push(node);
     if (node.children)
       filterRecursively(node.children, node, filterFn, results);
