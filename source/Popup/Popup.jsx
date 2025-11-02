@@ -13,7 +13,13 @@ class Popup extends React.Component {
         this.categoryItemRefs =  []
         this.filterInput = React.createRef();
 
-        const isSupportPinyin = Pinyin.isSupported()
+        // Only enable Pinyin if Chinese is in user's preferred languages
+        const userLanguages = navigator.languages || [navigator.language]
+        const isChinesePreferred = userLanguages.some(lang => 
+            lang.toLowerCase().startsWith('zh')
+        )
+        const isSupportPinyin = isChinesePreferred && Pinyin.isSupported()
+        
         this.state = {
             isSupportPinyin: isSupportPinyin,
             categoryNodes: [],
