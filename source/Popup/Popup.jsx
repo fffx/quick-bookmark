@@ -23,6 +23,7 @@ class Popup extends React.Component {
             saveDomainOnly: false,
             resorted: false, // resort after child check conatains current tab
             isLoadingCurrentTab: true, // Add loading state
+            maxVisibleItems: 50 // Limit rendered items for performance
         }
     }
 
@@ -67,9 +68,11 @@ class Popup extends React.Component {
                     // If we have a path like "foo / bar", search for parent directories matching "foo"
                     if(lastPart) {
                         const parentMatches = this.state.fuzzySearch.search(parentPath)
-                        if(parentMatches.length > 0) {
+                        // Limit to top 5 parent matches for performance
+                        const limitedParentMatches = parentMatches.slice(0, 5)
+                        if(limitedParentMatches.length > 0) {
                             // Found matching parent directories, offer to create child in each
-                            parentMatches.forEach(x => {
+                            limitedParentMatches.forEach(x => {
                                 newBtns.push({
                                     title: lastPart, id: 'NEW',
                                     parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
@@ -77,8 +80,8 @@ class Popup extends React.Component {
                                 })
                             })
                         } else {
-                            // Parent doesn't exist, also offer to create under filtered results
-                            filteredNodes.forEach(x => {
+                            // Parent doesn't exist, offer to create under top 5 filtered results
+                            filteredNodes.slice(0, 5).forEach(x => {
                                 newBtns.push({
                                     title: lastPart, id: 'NEW',
                                     parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
@@ -90,7 +93,7 @@ class Popup extends React.Component {
                     
                     // Also offer to create the full search text under root folders (only if not a path search)
                     if(!lastPart) {
-                        rootNodes.map( x => {
+                        rootNodes.forEach(x => {
                             newBtns.push({
                                 title: text, id: 'NEW',
                                 parentTitle: x.title,
@@ -109,7 +112,7 @@ class Popup extends React.Component {
             } else {
                 this.initBookmarkNodes()
             }
-        }, 100)(e);
+        }, 150)(e);
     }
     onRejected = (error) => {
         alert(error)
@@ -183,8 +186,9 @@ class Popup extends React.Component {
             // wrapper.style.width = wrapper.clientWidth + "px";
             let categoryNodesWithPinyin = null
             if (isSupportPinyin) {
+                const chineseRegex = /[\u3400-\u9FBF]/
                 categoryNodesWithPinyin = categoryNodes.map(x => {
-                    if (x.title.match(/[\u3400-\u9FBF]/)) {
+                    if (chineseRegex.test(x.title)) {
                         // console.debug(x.title)
                         x.pinyinTitle = Pinyin.convertToPinyin(x.title, ' ', true)
                     } else {
@@ -195,15 +199,27 @@ class Popup extends React.Component {
                 });
             }
 
-            // Process current tab logic here
-            categoryNodes.forEach(node => {
-                node.containsCurrentTab = false
-                if (currentTab && currentTab.url) {
-                    if(node.children.find( x => x.url && helper.isSameBookmarkUrl(x.url, currentTab.url))){
-                        node.containsCurrentTab = true
+            // Process current tab logic here - optimize with early exit
+            if (currentTab && currentTab.url) {
+                const currentUrl = currentTab.url
+                categoryNodes.forEach(node => {
+                    node.containsCurrentTab = false
+                    // Early exit if no children
+                    if (node.children && node.children.length > 0) {
+                        // Use for loop for early break
+                        for (let i = 0; i < node.children.length; i++) {
+                            if (node.children[i].url && helper.isSameBookmarkUrl(node.children[i].url, currentUrl)) {
+                                node.containsCurrentTab = true
+                                break
+                            }
+                        }
                     }
-                }
-            })
+                })
+            } else {
+                categoryNodes.forEach(node => {
+                    node.containsCurrentTab = false
+                })
+            }
 
             this.setState({
                 rootNodes: bookmarkItems[0].children,
@@ -226,7 +242,21 @@ class Popup extends React.Component {
     }
 
     render() {
-        const { categoryNodes, cursor, currentActiveTab, resorted, saveDomainOnly } = this.state
+        const { categoryNodes, cursor, currentActiveTab, resorted, saveDomainOnly, maxVisibleItems } = this.state
+        // Limit visible items for performance - show items around cursor
+        const visibleNodes = categoryNodes.length > maxVisibleItems 
+            ? (() => {
+                const halfVisible = Math.floor(maxVisibleItems / 2)
+                const start = Math.max(0, cursor - halfVisible)
+                const end = Math.min(categoryNodes.length, start + maxVisibleItems)
+                return categoryNodes.slice(start, end)
+            })()
+            : categoryNodes
+        
+        const startIndex = categoryNodes.length > maxVisibleItems 
+            ? Math.max(0, cursor - Math.floor(maxVisibleItems / 2))
+            : 0
+            
         // const filterInputValue = this.filterInput ? this.filterInput.value : ''
         // console.debug('categoryNodes', categoryNodes.length)
         return (
@@ -241,14 +271,15 @@ class Popup extends React.Component {
                     onBlur={({ target }) => target.focus()}
                     autoFocus={true}></input>
                 <div id="wrapper">
-                    {categoryNodes.map((node, index) => {
+                    {visibleNodes.map((node, visibleIndex) => {
+                        const index = startIndex + visibleIndex
                         return(<CategoryItem
                             node={node} key={`${node.id}-${node.parentId}`}
                             focused={cursor === index}
                             currentActiveTab={currentActiveTab}
                             updateCategoryNode={this.updateCategoryNode}
                             resortCategoryNodes={this.resortCategoryNodes}
-                            isLast={categoryNodes.length - 1 === index}
+                            isLast={index === categoryNodes.length - 1}
                             index={index}
                             resorted={resorted}
                             saveDomainOnly={saveDomainOnly}
