@@ -3,41 +3,33 @@ import browser from "webextension-polyfill";
 import { SEPARATOR} from "./Popup/CategoryItem"
 export const filterRecursively = (nodeArray, parentNode, filterFn, results) => {
   results = results || [];
-  nodeArray.forEach((node) => {
-    // if(node.type == "folder"){
-    //     console.log(`processing ------------------------------- node..... `, node.title, node)
-    //     console.log(`parentNode..... `, parentNode?.title)
-    //     console.log(`titlePrefix `, node.titlePrefix)
-    //     console.log(` parentNode titlePrefix `, parentNode?.titlePrefix)
-    //     console.log(`children.....`, node.children.map(x => x.title))
-    // }
-    /* firefox:
-       id: "root________", title: "", index: 0, dateAdded: 1679435630057, type: "folder", url: undefined, dateGroupModified: 1758469899045,
-          children:  ["Bookmarks Menu", "Bookmarks Toolbar", "Other Bookmarks", "Mobile Bookmarks"]
-          ...
-      */
-    // if (helper.getBrowserName() == "firefox") {
-    //     titlePrefix = browser.bookmarks.get(node.parentId).then(node => node.title)
-    // }
-    if (parentNode?.titlePrefix && parentNode?.title) {
-      node.titlePrefix = `${parentNode.titlePrefix}${SEPARATOR}${parentNode.title}`;
-    } else if (parentNode?.title) {
-      node.titlePrefix = parentNode.title;
-    }
+  
+  // Pre-compute parent path information
+  const parentTitlePrefix = parentNode?.titlePrefix && parentNode?.title 
+    ? `${parentNode.titlePrefix}${SEPARATOR}${parentNode.title}`
+    : parentNode?.title || null;
 
+  for (let i = 0; i < nodeArray.length; i++) {
+    const node = nodeArray[i];
+    
+    // Set titlePrefix efficiently
+    node.titlePrefix = parentTitlePrefix;
+
+    // Set dirPath based on whether it's a bookmark or folder
     if (node.url) {
-      node.dirPath = `${node.titlePrefix}${SEPARATOR}${node.title}`;
-    } else if (node.titlePrefix) {
-      node.dirPath = node.titlePrefix;
+      node.dirPath = parentTitlePrefix ? `${parentTitlePrefix}${SEPARATOR}${node.title}` : node.title;
     } else {
-      node.dirPath = node.title;
+      node.dirPath = parentTitlePrefix || node.title;
     }
-    // console.log("node.dirPath", node.dirPath);
 
+    // Apply filter and add to results
     if (filterFn(node)) results.push(node);
-    if (node.children)
+    
+    // Recursively process children if they exist
+    if (node.children && node.children.length > 0) {
       filterRecursively(node.children, node, filterFn, results);
-  });
+    }
+  }
 
   return results;
 };

@@ -175,58 +175,58 @@ class Popup extends React.Component {
             browser.bookmarks.getTree(),
             helper.getCurrentTab().catch(() => null) // Don't fail if tab query fails
         ]).then(([bookmarkItems, currentTab]) => {
+            const browserName = helper.getBrowserName()
             const categoryNodes = helper.filterRecursively(bookmarkItems, null, (node) => {
-                if (helper.getBrowserName() == "firefox") {
+                if (browserName === "firefox") {
                     return !node.url && node.title;
                 } else {
                     return !node.url && node.id > 0
                 }
             })
 
-            // wrapper.style.width = wrapper.clientWidth + "px";
-            let categoryNodesWithPinyin = null
-            if (isSupportPinyin) {
-                const chineseRegex = /[\u3400-\u9FBF]/
-                categoryNodesWithPinyin = categoryNodes.map(x => {
-                    if (chineseRegex.test(x.title)) {
-                        // console.debug(x.title)
-                        x.pinyinTitle = Pinyin.convertToPinyin(x.title, ' ', true)
-                    } else {
-                        x.pinyinTitle = x.title
-                    }
-
-                    return x;
-                });
-            }
-
-            // Process current tab logic here - optimize with early exit
+            // Build URL map for faster lookup if we have a current tab
+            let urlMap = null
             if (currentTab && currentTab.url) {
-                const currentUrl = currentTab.url
+                urlMap = new Map()
+                const currentUrl = helper.removeHashtag(currentTab.url)
                 categoryNodes.forEach(node => {
-                    node.containsCurrentTab = false
-                    // Early exit if no children
                     if (node.children && node.children.length > 0) {
-                        // Use for loop for early break
                         for (let i = 0; i < node.children.length; i++) {
-                            if (node.children[i].url && helper.isSameBookmarkUrl(node.children[i].url, currentUrl)) {
-                                node.containsCurrentTab = true
-                                break
+                            if (node.children[i].url) {
+                                const bookmarkUrl = helper.removeHashtag(node.children[i].url)
+                                if (bookmarkUrl === currentUrl) {
+                                    urlMap.set(node.id, true)
+                                    break
+                                }
                             }
                         }
                     }
                 })
-            } else {
-                categoryNodes.forEach(node => {
-                    node.containsCurrentTab = false
-                })
             }
+
+            // Process nodes in single pass - combine pinyin and containsCurrentTab
+            const chineseRegex = isSupportPinyin ? /[\u3400-\u9FBF]/ : null
+            categoryNodes.forEach(node => {
+                // Add pinyin if supported
+                if (chineseRegex && chineseRegex.test(node.title)) {
+                    node.pinyinTitle = Pinyin.convertToPinyin(node.title, ' ', true)
+                } else if (isSupportPinyin) {
+                    node.pinyinTitle = node.title
+                }
+                
+                // Set containsCurrentTab from map
+                node.containsCurrentTab = urlMap ? (urlMap.get(node.id) === true) : false
+            })
+
+            // Sort once at the end
+            const sortedNodes = categoryNodes.sort(helper.sortNodes)
 
             this.setState({
                 rootNodes: bookmarkItems[0].children,
-                categoryNodes: categoryNodes.sort(helper.sortNodes),
+                categoryNodes: sortedNodes,
                 currentActiveTab: currentTab,
-                cursor: categoryNodes.length > cursor ? cursor : 0,
-                fuzzySearch: new fuzzySearch(categoryNodesWithPinyin || categoryNodes)
+                cursor: sortedNodes.length > cursor ? cursor : 0,
+                fuzzySearch: new fuzzySearch(categoryNodes)
             })
         }, this.onRejected)
     }

@@ -9,9 +9,6 @@ import { VscAdd, VscRemove } from 'react-icons/vsc'
 
 // const SEPARATOR = <span className="separator"> </span>
 const SEPARATOR = ' / '
-
-// Memoized CategoryItem for performance with large lists
-const CategoryItemComponent = React.memo(
 class CategoryItem extends React.Component {
     constructor(props){
         super(props)
@@ -136,17 +133,7 @@ class CategoryItem extends React.Component {
                 {showSaveDomainOnly && <> <br/> <span className="small" style={{marginLeft: "1rem"}}> Save Domain</span> </>}
         </div>)
     }
-}, (prevProps, nextProps) => {
-    // Custom comparison for memo - only re-render if these props change
-    return (
-        prevProps.focused === nextProps.focused &&
-        prevProps.node.id === nextProps.node.id &&
-        prevProps.node.containsCurrentTab === nextProps.node.containsCurrentTab &&
-        prevProps.saveDomainOnly === nextProps.saveDomainOnly &&
-        prevProps.resorted === nextProps.resorted &&
-        prevProps.node.children.length === nextProps.node.children.length
-    )
-})
+}
 
 
-export {SEPARATOR, CategoryItemComponent as CategoryItem}
+export {SEPARATOR, CategoryItem}
