@@ -33,31 +33,72 @@ class Popup extends React.Component {
             if (text && text.length > 0) {
                 const texts = text.split("/").map(x => x.trim())
                 let lastPart = null
+                let parentPath = text
                 if(texts.length > 1) {
-                    lastPart = lastParts.pop()
+                    lastPart = texts.pop()
+                    parentPath = texts.join(" / ")
                 }
                 const { rootNodes } = this.state
                 const filteredNodes = this.state.fuzzySearch.search(text)
                 let newCursor = 0
+                
+                // Check if we have an exact match for the full search text
+                const hasExactMatch = filteredNodes.length > 0 && filteredNodes[0].title === text
+                
+                // For path searches, check if we have exact match for the child in the parent
+                let hasExactPathMatch = false
+                if(lastPart) {
+                    const parentMatches = this.state.fuzzySearch.search(parentPath)
+                    if(parentMatches.length > 0 && parentMatches[0].title === parentPath) {
+                        // Check if the child exists in the matched parent
+                        const fullPath = `${parentMatches[0].titlePrefix ? `${parentMatches[0].titlePrefix} / ${parentMatches[0].title}` : parentMatches[0].title} / ${lastPart}`
+                        hasExactPathMatch = filteredNodes.some(node => {
+                            const nodePath = node.titlePrefix ? `${node.titlePrefix} / ${node.title}` : node.title
+                            return nodePath === fullPath || node.title === lastPart && node.titlePrefix && node.titlePrefix.includes(parentMatches[0].title)
+                        })
+                    }
+                }
+                
                 // console.debug(`best score: ${results[0]?.score}`)
-                if (filteredNodes.length === 0 || filteredNodes[0].title != text) {
+                if (!hasExactMatch && !hasExactPathMatch) {
                     console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
                     const newBtns = []
 
-                    lastPart && filteredNodes.forEach( x=> {
-                        newBtns.push({
-                            title: lastPart, id: 'NEW',
-                            parentTitle: x.titlePrefix || x.title,
-                            parentId: x.id, children: []
+                    // If we have a path like "foo / bar", search for parent directories matching "foo"
+                    if(lastPart) {
+                        const parentMatches = this.state.fuzzySearch.search(parentPath)
+                        if(parentMatches.length > 0) {
+                            // Found matching parent directories, offer to create child in each
+                            parentMatches.forEach(x => {
+                                newBtns.push({
+                                    title: lastPart, id: 'NEW',
+                                    parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
+                                    parentId: x.id, children: []
+                                })
+                            })
+                        } else {
+                            // Parent doesn't exist, also offer to create under filtered results
+                            filteredNodes.forEach(x => {
+                                newBtns.push({
+                                    title: lastPart, id: 'NEW',
+                                    parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
+                                    parentId: x.id, children: []
+                                })
+                            })
+                        }
+                    }
+                    
+                    // Also offer to create the full search text under root folders (only if not a path search)
+                    if(!lastPart) {
+                        rootNodes.map( x => {
+                            newBtns.push({
+                                title: text, id: 'NEW',
+                                parentTitle: x.title,
+                                parentId: x.id, children: []
+                            })
                         })
-                    })
-                    rootNodes.map( x => {
-                        newBtns.push({
-                            title: text, id: 'NEW',
-                            parentTitle: x.title,
-                            parentId: x.id, children: []
-                        })
-                    })
+                    }
+                    
                     if(!lastPart && filteredNodes.length > 0) newCursor += newBtns.length
                     // console.debug("Not found ...", text)
                     this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
