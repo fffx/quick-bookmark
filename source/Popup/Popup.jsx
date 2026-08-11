@@ -29,7 +29,7 @@ class Popup extends React.Component {
             saveDomainOnly: false,
             resorted: false, // resort after child check conatains current tab
             isLoadingCurrentTab: true, // Add loading state
-            maxVisibleItems: 50 // Limit rendered items for performance
+            maxVisibleItems: props.maxVisibleItems || 50 // Limit rendered items for performance
         }
     }
 
@@ -68,7 +68,7 @@ class Popup extends React.Component {
                 
                 // console.debug(`best score: ${results[0]?.score}`)
                 if (!hasExactMatch && !hasExactPathMatch) {
-                    console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
+                    // console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
                     const newBtns = []
 
                     // If we have a path like "foo / bar", search for parent directories matching "foo"
@@ -125,7 +125,7 @@ class Popup extends React.Component {
     }
     updateCategoryNode = (index, newNodeProps) =>{
         // Yeah update categoryNodes directly,
-        console.debug('update category node', index, newNodeProps)
+        // console.debug('update category node', index, newNodeProps)
         this.state.categoryNodes[index] = Object.assign(this.state.categoryNodes[index], newNodeProps)
     }
 
