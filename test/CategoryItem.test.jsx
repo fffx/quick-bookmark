@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CategoryItem } from '../source/Popup/CategoryItem';
 
 describe('CategoryItem Component', () => {
@@ -93,6 +93,66 @@ describe('CategoryItem Component', () => {
     expect(global.browser.bookmarks.create).toHaveBeenCalledWith({
       title: 'New Folder',
       parentId: '1',
+    });
+  });
+
+  it('should remove bookmark when folder contains the current tab', async () => {
+    const nodeWithTab = { ...mockNode, containsCurrentTab: true };
+    global.browser.bookmarks.remove.mockResolvedValue();
+    global.browser.tabs.query.mockResolvedValue([
+      { url: 'https://example.com', title: 'Example' },
+    ]);
+
+    const { container } = render(<CategoryItem {...mockProps} node={nodeWithTab} />);
+    const element = container.querySelector('[data-id]');
+
+    fireEvent.click(element);
+
+    await waitFor(() => {
+      expect(global.browser.bookmarks.remove).toHaveBeenCalledWith('2');
+    });
+    expect(global.window.close).toHaveBeenCalled();
+  });
+
+  it('should add current tab to folder on click', async () => {
+    global.browser.bookmarks.create.mockResolvedValue({ id: '9' });
+    global.browser.tabs.query.mockResolvedValue([
+      { url: 'https://other.com', title: 'Other' },
+    ]);
+
+    const { container } = render(<CategoryItem {...mockProps} />);
+    const element = container.querySelector('[data-id]');
+
+    fireEvent.click(element);
+
+    await waitFor(() => {
+      expect(global.browser.bookmarks.create).toHaveBeenCalledWith({
+        parentId: '1',
+        title: 'Other',
+        url: 'https://other.com',
+      });
+    });
+  });
+
+  it('should save domain only when saveDomainOnly is set', async () => {
+    global.browser.bookmarks.create.mockResolvedValue({ id: '9' });
+    global.browser.tabs.query.mockResolvedValue([
+      { url: 'https://sub.example.com/path?q=1', title: 'Full Title' },
+    ]);
+
+    const { container } = render(
+      <CategoryItem {...mockProps} focused={true} saveDomainOnly={true} />
+    );
+    const element = container.querySelector('[data-id]');
+
+    fireEvent.click(element);
+
+    await waitFor(() => {
+      expect(global.browser.bookmarks.create).toHaveBeenCalledWith({
+        parentId: '1',
+        title: 'sub.example.com',
+        url: 'https://sub.example.com',
+      });
     });
   });
 

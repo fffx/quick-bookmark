@@ -3,15 +3,30 @@ import { vi } from 'vitest';
 
 // Single browser mock shared by global.browser and webextension-polyfill
 const browser = {
+  action: {
+    setBadgeText: vi.fn(),
+  },
   bookmarks: {
     getTree: vi.fn(),
     create: vi.fn(),
     remove: vi.fn(),
     get: vi.fn(),
+    onCreated: {
+      addListener: vi.fn(),
+    },
+    onRemoved: {
+      addListener: vi.fn(),
+    },
   },
   tabs: {
-    query: vi.fn(),
+    query: vi.fn(() => Promise.resolve([])),
     getCurrent: vi.fn(),
+    onUpdated: {
+      addListener: vi.fn(),
+    },
+    onActivated: {
+      addListener: vi.fn(),
+    },
   },
   windows: {
     onFocusChanged: {

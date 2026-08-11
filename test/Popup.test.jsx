@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Popup from '../source/Popup/Popup';
 
 describe('Popup Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    Object.defineProperty(navigator, 'languages', {
+      writable: true,
+      configurable: true,
+      value: ['en-US'],
+    });
     
     // Mock bookmarks.getTree
     global.browser.bookmarks.getTree.mockResolvedValue([
@@ -75,6 +81,11 @@ describe('Popup Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Development/)).toBeInTheDocument();
     });
+
+    // Non-matching folder should be filtered out
+    await waitFor(() => {
+      expect(screen.queryByText(/News/)).not.toBeInTheDocument();
+    });
   });
 
   it('should show create option for non-existent folder', async () => {
@@ -109,25 +120,159 @@ describe('Popup Component', () => {
     });
   });
 
-  it('should only enable Pinyin for Chinese language users', () => {
-    // Test with Chinese language
+  it('should navigate bookmark list with arrow keys', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('Filter ...');
+    const focusedText = () => container.querySelector('.focus')?.textContent || '';
+
+    // Development contains the current tab, so it sorts first and is focused
+    expect(focusedText()).toContain('Development');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(focusedText()).toContain('Bookmarks Bar');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(focusedText()).toContain('News');
+
+    // Wraps around to the first item
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(focusedText()).toContain('Development');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(focusedText()).toContain('News');
+  });
+
+  it('should bookmark current tab to focused folder on Enter', async () => {
+    global.browser.bookmarks.create.mockResolvedValue({ id: '9' });
+    const user = userEvent.setup();
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('Filter ...');
+    // Move focus from Development down to Bookmarks Bar
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(global.browser.bookmarks.create).toHaveBeenCalledWith({
+        parentId: '1',
+        title: 'GitHub',
+        url: 'https://github.com',
+      });
+    });
+  });
+
+  it('should remove bookmark from focused folder on Delete', async () => {
+    global.browser.bookmarks.remove.mockResolvedValue();
+    const user = userEvent.setup();
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('Filter ...');
+    // Development (cursor 0) contains the current tab (https://github.com)
+    fireEvent.keyDown(input, { key: 'Delete' });
+
+    await waitFor(() => {
+      expect(global.browser.bookmarks.remove).toHaveBeenCalledWith('3');
+    });
+  });
+
+  it('should match Chinese folder by pinyin for Chinese language users', async () => {
     Object.defineProperty(navigator, 'languages', {
       writable: true,
+      configurable: true,
       value: ['zh-CN', 'en-US'],
     });
 
-    const { container: container1 } = render(<Popup />);
-    
-    // Test with non-Chinese language
+    global.browser.bookmarks.getTree.mockResolvedValue([
+      {
+        id: '0',
+        children: [
+          {
+            id: '1',
+            title: 'Bookmarks Bar',
+            children: [
+              {
+                id: '2',
+                title: '开发',
+                children: [
+                  { id: '3', title: 'GitHub', url: 'https://github.com' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const user = userEvent.setup();
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/开发/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('Filter ...');
+    await user.type(input, 'kai');
+
+    await waitFor(() => {
+      expect(screen.getByText(/开发/)).toBeInTheDocument();
+    });
+  });
+
+  it('should not match Chinese folder by pinyin for non-Chinese users', async () => {
     Object.defineProperty(navigator, 'languages', {
       writable: true,
+      configurable: true,
       value: ['en-US', 'es-ES'],
     });
 
-    const { container: container2 } = render(<Popup />);
-    
-    // Both should render without errors
-    expect(container1).toBeInTheDocument();
-    expect(container2).toBeInTheDocument();
+    global.browser.bookmarks.getTree.mockResolvedValue([
+      {
+        id: '0',
+        children: [
+          {
+            id: '1',
+            title: 'Bookmarks Bar',
+            children: [
+              {
+                id: '2',
+                title: '开发',
+                children: [
+                  { id: '3', title: 'GitHub', url: 'https://github.com' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const user = userEvent.setup();
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/开发/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('Filter ...');
+    await user.type(input, 'kai');
+
+    // Pinyin is disabled, so the Chinese folder is filtered out
+    await waitFor(() => {
+      expect(screen.queryByText(/开发/)).not.toBeInTheDocument();
+    });
   });
 });

@@ -3,6 +3,7 @@ import {
   filterRecursively,
   debounce,
   getBrowserName,
+  getCurrentTab,
   removeHashtag,
   isSameBookmarkUrl,
   sortNodes,
@@ -128,6 +129,21 @@ describe('helper functions', () => {
       
       expect(name1).toBe(name2);
       expect(['chrome', 'firefox', 'edge', 'opera']).toContain(name1);
+    });
+  });
+
+  describe('getCurrentTab', () => {
+    it('should resolve with the first tab from query', async () => {
+      const mockTab = { id: 1, url: 'https://example.com', title: 'Example' };
+      global.browser.tabs.query.mockResolvedValue([mockTab]);
+
+      await expect(getCurrentTab()).resolves.toBe(mockTab);
+    });
+
+    it('should resolve undefined when there are no tabs', async () => {
+      global.browser.tabs.query.mockResolvedValue([]);
+
+      await expect(getCurrentTab()).resolves.toBeUndefined();
     });
   });
 });
