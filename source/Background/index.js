@@ -1,13 +1,14 @@
 import "emoji-log";
-import * as helper from "../helper";
 import browser from "webextension-polyfill";
+import { isSameBookmarkUrl } from "../lib/url";
+import { collectMatchingNodes } from "../lib/tree";
 
-// show number of bookmark folders contain current tab
-var currentTab;
-function updateBadge(currentTab, bookmarks) {
+// show number of bookmark folders containing current tab
+let currentTab;
+function updateBadge(tab, bookmarks) {
   const text = bookmarks.length > 0 ? `${bookmarks.length}` : "";
   browser.action.setBadgeText({
-    tabId: currentTab.id,
+    tabId: tab.id,
     text: text,
   });
 }
@@ -16,32 +17,19 @@ function updateBadge(currentTab, bookmarks) {
  * Switches currentTab and currentBookmark to reflect the currently active tab
  */
 function updateActiveTab() {
-  function updateTab(tabs) {
-    // console.log("updateTabs", tabs);
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (!tabs[0]) {
       return;
     }
     currentTab = tabs[0];
     browser.bookmarks.getTree().then((bookmarkItems) => {
-      let bookmarks = [];
-      const filter = (node) => {
-        if (node.url) {
-          helper.isSameBookmarkUrl(currentTab.url, node.url) &&
-            bookmarks.push(node);
-        } else {
-          node.children.forEach((x) => filter(x));
-        }
-      };
-      bookmarkItems.forEach((x) => filter(x));
+      const bookmarks = collectMatchingNodes(
+        bookmarkItems,
+        (node) => node.url && isSameBookmarkUrl(currentTab.url, node.url),
+      );
       updateBadge(currentTab, bookmarks);
     });
-  }
-
-  var gettingActiveTab = browser.tabs.query({
-    active: true,
-    currentWindow: true,
   });
-  gettingActiveTab.then(updateTab);
 }
 
 // listen for bookmarks being created

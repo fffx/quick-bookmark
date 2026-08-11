@@ -1,139 +1,154 @@
-import * as React from 'react';
-import browser from 'webextension-polyfill';
-import * as helper from '../helper';
-// import ReactTypingEffect from 'react-typing-effect';
-
+import React, { forwardRef, useEffect } from "react";
+import browser from "webextension-polyfill";
 import { HiOutlineFolderAdd } from "react-icons/hi";
+import { VscAdd, VscRemove } from "react-icons/vsc";
+import { SEPARATOR } from "../lib/constants";
+import { getCurrentTab } from "../lib/browser";
+import { fullTitle } from "../lib/tree";
+import { isSameBookmarkUrl } from "../lib/url";
 
-import { VscAdd, VscRemove } from 'react-icons/vsc'
+const CategoryItem = forwardRef(function CategoryItem(props, ref) {
+  const {
+    node,
+    focused,
+    resortCategoryNodes,
+    isLast,
+    resorted,
+    saveDomainOnly,
+  } = props;
 
-// const SEPARATOR = <span className="separator"> </span>
-const SEPARATOR = ' / '
-class CategoryItem extends React.Component {
-    constructor(props){
-        super(props)
-        this.categoryItemRef = React.createRef();
-        this.scrollIntoView = () => {
-            this.props.focused && this.categoryItemRef.current.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center'})
-        }
-
-        this.state = {
-            // containsCurrentTab: false
-        }
+  useEffect(() => {
+    if (focused) {
+      ref?.current?.scrollIntoView({
+        behavior: "auto",
+        block: "center",
+        inline: "center",
+      });
     }
-
-    clickHandler = (event) => {
-        if (this.props.node.id === "NEW") {
-            browser.bookmarks.create({
-                title: this.props.node.title,
-                parentId: this.props.node.parentId
-            }).then((newNode) => this.processBookmark(newNode) )
-        } else {
-            this.processBookmark();
-        }
+    // Resorts after all items have been rendered, so folders containing the
+    // current tab bubble to the top.
+    if (!resorted && isLast) {
+      resortCategoryNodes();
     }
+  });
 
-    removeTabById(nodeId){
-        browser.bookmarks.remove(nodeId).then( () => {
-            this.props.resortCategoryNodes()
-            window.close()
+  const removeTabById = (nodeId) => {
+    browser.bookmarks.remove(nodeId).then(() => {
+      resortCategoryNodes();
+      window.close();
+    });
+  };
+
+  const processBookmark = (targetNode) => {
+    const target = targetNode || node;
+    getCurrentTab().then(
+      (currentTab) => {
+        // If the folder already contains the current tab, remove it instead.
+        const bookmarkNode = target?.children?.find((x) =>
+          isSameBookmarkUrl(x.url, currentTab.url),
+        );
+        if (bookmarkNode) {
+          removeTabById(bookmarkNode.id);
+          return;
+        }
+
+        const urlObject = new URL(currentTab.url);
+        browser.bookmarks
+          .create({
+            parentId: target.id,
+            title: saveDomainOnly ? urlObject.hostname : currentTab.title,
+            url: saveDomainOnly
+              ? `${urlObject.protocol}//${urlObject.hostname}`
+              : currentTab.url,
+          })
+          .then(() => window.close());
+      },
+      (error) => console.log(error),
+    );
+  };
+
+  const clickHandler = () => {
+    if (node.id === "NEW") {
+      browser.bookmarks
+        .create({
+          title: node.title,
+          parentId: node.parentId,
         })
+        .then(processBookmark);
+    } else {
+      processBookmark();
     }
+  };
 
-
-    processBookmark = (targetNode) => {
-        targetNode = targetNode || this.props.node
-        helper.getCurrentTab().then( currentTab => {
-            // newNode have none children
-            var bookmarkNode = targetNode?.children?.find(x => helper.isSameBookmarkUrl(x.url, currentTab.url))
-            if(bookmarkNode){
-                return this.removeTabById(bookmarkNode.id)
-            }else{
-                const urlObject = new URL(currentTab.url);
-                browser.bookmarks.create({
-                    'parentId': targetNode.id,
-                    'title': this.props.saveDomainOnly ? urlObject.hostname : currentTab.title,
-                    'url': this.props.saveDomainOnly ? `${urlObject.protocol}//${urlObject.hostname}` : currentTab.url
-                }).then( () => window.close() )
-            }
-        }, (error) => console.log(error));
-
+  const renderIcon = () => {
+    const color = node.containsCurrentTab ? "red" : "inherit";
+    const iconProps = { color, size: "1.5em", className: "category-icon" };
+    if (node.id === "NEW") {
+      return <HiOutlineFolderAdd {...iconProps} />;
     }
+    return node.containsCurrentTab ? (
+      <VscRemove {...iconProps} />
+    ) : (
+      <VscAdd {...iconProps} />
+    );
+  };
 
-    componentDidMount(){
-        this.scrollIntoView()
+  const renderTitle = () => {
+    if (node.id === "NEW") {
+      return (
+        <>
+          {node.parentTitle}
+          {SEPARATOR}
+          <span className="new-folder-name">{node.title} </span>
+        </>
+      );
     }
+    return `${fullTitle(node)} (${node.children.length})`;
+  };
 
-    componentDidUpdate(){
-        this.scrollIntoView()
-        if(!this.props.resorted && this.props.isLast) this.props.resortCategoryNodes()
-    }
+  const id = node.id;
+  const count = node.children.length;
+  const title = node.titlePrefix || node.title;
 
+  const classNames = [];
+  if (focused) classNames.push("focus");
+  if (id === "NEW") classNames.push("create");
+  if (node.containsCurrentTab) classNames.push("contains-current-tab");
 
-    renderIcon(node){
-        const { focused } = this.props
-        const color = node.containsCurrentTab ? 'red' : 'inherit'
-        const iconProps = {color: color, size: '1.5em', className: "category-icon"}
-        if(node.id === 'NEW'){
-            return focused ? <HiOutlineFolderAdd {...iconProps}/> : <HiOutlineFolderAdd {...iconProps}/>
-        } else {
-            return node.containsCurrentTab ? <VscRemove {...iconProps}/> : <VscAdd {...iconProps}/>
-        }
-    }
+  let hintTitle = "";
+  if (id === "NEW") {
+    hintTitle = `New ${node.title} under ${node.parentTitle} and bookmark current tab to it`;
+  } else {
+    hintTitle = node.containsCurrentTab
+      ? `Remove bookmark from ${node.title}`
+      : `Bookmark current tab to ${node.title}`;
+  }
 
-    renderTitle(node){
-        if(node.id === 'NEW'){
-            return (<> {node.parentTitle}{SEPARATOR}<span className="new-folder-name">{node.title} </span> </>)
-        } else {
-            if(node.titlePrefix) {
-                return `${node.titlePrefix}${SEPARATOR}${node.title} (${node.children.length})`
-            } else {
-                return `${node.title} (${node.children.length})`
-            }
-        }
-    }
+  const showSaveDomainOnly = saveDomainOnly && focused && !node.containsCurrentTab;
 
-    render(){
-        const { node, focused, saveDomainOnly } = this.props
+  return (
+    <div
+      ref={ref}
+      data-id={`${id}-${title}`}
+      title={hintTitle}
+      data-count={count}
+      data-title={title}
+      className={classNames.join(" ")}
+      onClick={clickHandler}
+    >
+      {renderIcon()}
+      {renderTitle()}
+      {showSaveDomainOnly && (
+        <>
+          <br />
+          <span className="small" style={{ marginLeft: "1rem" }}>
+            {" "}
+            Save Domain
+          </span>
+        </>
+      )}
+    </div>
+  );
+});
 
-        const { id } = node
-        const count = node.children.length
-        const title = node.titlePrefix || node.title;
-        let classNames = []
-
-        const showSaveDomainOnly = saveDomainOnly && focused && !node.containsCurrentTab
-        if(focused){
-            classNames.push('focus')
-        }
-        if(id === 'NEW') {
-            classNames.push('create')
-        }
-
-        if(node.containsCurrentTab){
-            classNames.push('contains-current-tab')
-        }
-
-        // TODO hove show Delete, Rename, Move
-        let hintTitle = ""
-        if(id === "NEW") {
-            `New ${node.title} under ${node.parentTitle} and bookmark current tab to it`
-        } else {
-            node.containsCurrentTab ? `Remove bookmark from ${node.title}` : `Bookmark current tab to ${node.title}`
-        }
-        return (<div
-            ref={this.categoryItemRef}
-            data-id={`${id}-${title}`}
-            title={hintTitle}
-            data-count={count}
-            data-title={title}
-            className={classNames.join(' ')}
-            onClick={this.clickHandler}>
-                {this.renderIcon(node)}
-                {this.renderTitle(node)}
-                {showSaveDomainOnly && <> <br/> <span className="small" style={{marginLeft: "1rem"}}> Save Domain</span> </>}
-        </div>)
-    }
-}
-
-
-export {SEPARATOR, CategoryItem}
+export { CategoryItem };

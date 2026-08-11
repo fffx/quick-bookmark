@@ -1,13 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  filterRecursively,
-  debounce,
-  getBrowserName,
-  getCurrentTab,
-  removeHashtag,
-  isSameBookmarkUrl,
-  sortNodes,
-} from '../source/helper';
+import { filterRecursively, sortNodes } from '../source/lib/tree';
+import { debounce } from '../source/lib/debounce';
+import { getBrowserName, getCurrentTab } from '../source/lib/browser';
+import { removeHashtag, isSameBookmarkUrl } from '../source/lib/url';
 
 describe('helper functions', () => {
   describe('filterRecursively', () => {
