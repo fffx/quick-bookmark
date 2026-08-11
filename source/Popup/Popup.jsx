@@ -12,6 +12,13 @@ class Popup extends React.Component {
         this.focusedCategoryItem = React.createRef();
         this.categoryItemRefs =  []
         this.filterInput = React.createRef();
+        this.fuzzySearch = null;
+        this.allCategoryNodes = null;
+        // Debounce is created once so rapid keystrokes only trigger a single search.
+        // The text value is captured synchronously to avoid relying on the event.
+        this.onSearchInput = helper.debounce((text) => {
+            this.handleSearchInput(text)
+        }, 150);
 
         // Only enable Pinyin if Chinese is in user's preferred languages
         const userLanguages = navigator.languages || [navigator.language]
@@ -35,90 +42,99 @@ class Popup extends React.Component {
 
 
     onInputChange = (e) => {
-        helper.debounce(event => {
-            const text = event.target.value
-            if (text && text.length > 0) {
-                const texts = text.split("/").map(x => x.trim())
-                let lastPart = null
-                let parentPath = text
-                if(texts.length > 1) {
-                    lastPart = texts.pop()
-                    parentPath = texts.join(" / ")
-                }
-                const { rootNodes } = this.state
-                const filteredNodes = this.state.fuzzySearch.search(text)
-                let newCursor = 0
-                
-                // Check if we have an exact match for the full search text
-                const hasExactMatch = filteredNodes.length > 0 && filteredNodes[0].title === text
-                
-                // For path searches, check if we have exact match for the child in the parent
-                let hasExactPathMatch = false
-                if(lastPart) {
-                    const parentMatches = this.state.fuzzySearch.search(parentPath)
-                    if(parentMatches.length > 0 && parentMatches[0].title === parentPath) {
-                        // Check if the child exists in the matched parent
-                        const fullPath = `${parentMatches[0].titlePrefix ? `${parentMatches[0].titlePrefix} / ${parentMatches[0].title}` : parentMatches[0].title} / ${lastPart}`
-                        hasExactPathMatch = filteredNodes.some(node => {
-                            const nodePath = node.titlePrefix ? `${node.titlePrefix} / ${node.title}` : node.title
-                            return nodePath === fullPath || node.title === lastPart && node.titlePrefix && node.titlePrefix.includes(parentMatches[0].title)
-                        })
-                    }
-                }
-                
-                // console.debug(`best score: ${results[0]?.score}`)
-                if (!hasExactMatch && !hasExactPathMatch) {
-                    // console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
-                    const newBtns = []
+        this.onSearchInput(e.target.value)
+    }
 
-                    // If we have a path like "foo / bar", search for parent directories matching "foo"
-                    if(lastPart) {
-                        const parentMatches = this.state.fuzzySearch.search(parentPath)
-                        // Limit to top 5 parent matches for performance
-                        const limitedParentMatches = parentMatches.slice(0, 5)
-                        if(limitedParentMatches.length > 0) {
-                            // Found matching parent directories, offer to create child in each
-                            limitedParentMatches.forEach(x => {
-                                newBtns.push({
-                                    title: lastPart, id: 'NEW',
-                                    parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
-                                    parentId: x.id, children: []
-                                })
-                            })
-                        } else {
-                            // Parent doesn't exist, offer to create under top 5 filtered results
-                            filteredNodes.slice(0, 5).forEach(x => {
-                                newBtns.push({
-                                    title: lastPart, id: 'NEW',
-                                    parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
-                                    parentId: x.id, children: []
-                                })
-                            })
-                        }
-                    }
-                    
-                    // Also offer to create the full search text under root folders (only if not a path search)
-                    if(!lastPart) {
-                        rootNodes.forEach(x => {
+    getFuzzySearch() {
+        if (!this.fuzzySearch) {
+            this.fuzzySearch = new fuzzySearch(this.allCategoryNodes, this.state.isSupportPinyin)
+        }
+        return this.fuzzySearch
+    }
+
+    handleSearchInput = (text) => {
+        if (text && text.length > 0) {
+            const texts = text.split("/").map(x => x.trim())
+            let lastPart = null
+            let parentPath = text
+            if(texts.length > 1) {
+                lastPart = texts.pop()
+                parentPath = texts.join(" / ")
+            }
+            const { rootNodes } = this.state
+            const search = this.getFuzzySearch()
+            const filteredNodes = search.search(text)
+            let newCursor = 0
+            
+            // Check if we have an exact match for the full search text
+            const hasExactMatch = filteredNodes.length > 0 && filteredNodes[0].title === text
+            
+            // For path searches, check if we have exact match for the child in the parent
+            let hasExactPathMatch = false
+            if(lastPart) {
+                const parentMatches = search.search(parentPath)
+                if(parentMatches.length > 0 && parentMatches[0].title === parentPath) {
+                    // Check if the child exists in the matched parent
+                    const fullPath = `${parentMatches[0].titlePrefix ? `${parentMatches[0].titlePrefix} / ${parentMatches[0].title}` : parentMatches[0].title} / ${lastPart}`
+                    hasExactPathMatch = filteredNodes.some(node => {
+                        const nodePath = node.titlePrefix ? `${node.titlePrefix} / ${node.title}` : node.title
+                        return nodePath === fullPath || node.title === lastPart && node.titlePrefix && node.titlePrefix.includes(parentMatches[0].title)
+                    })
+                }
+            }
+            
+            // console.debug(`best score: ${results[0]?.score}`)
+            if (!hasExactMatch && !hasExactPathMatch) {
+                // console.debug('rootNodes', rootNodes.length, rootNodes, filteredNodes)
+                const newBtns = []
+
+                // If we have a path like "foo / bar", search for parent directories matching "foo"
+                if(lastPart) {
+                    const parentMatches = search.search(parentPath)
+                    // Limit to top 5 parent matches for performance
+                    const limitedParentMatches = parentMatches.slice(0, 5)
+                    if(limitedParentMatches.length > 0) {
+                        // Found matching parent directories, offer to create child in each
+                        limitedParentMatches.forEach(x => {
                             newBtns.push({
-                                title: text, id: 'NEW',
-                                parentTitle: x.title,
+                                title: lastPart, id: 'NEW',
+                                parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
+                                parentId: x.id, children: []
+                            })
+                        })
+                    } else {
+                        // Parent doesn't exist, offer to create under top 5 filtered results
+                        filteredNodes.slice(0, 5).forEach(x => {
+                            newBtns.push({
+                                title: lastPart, id: 'NEW',
+                                parentTitle: x.titlePrefix ? `${x.titlePrefix} / ${x.title}` : x.title,
                                 parentId: x.id, children: []
                             })
                         })
                     }
-                    
-                    if(!lastPart && filteredNodes.length > 0) newCursor += newBtns.length
-                    // console.debug("Not found ...", text)
-                    this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
-                } else {
-                    this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
                 }
-
+                
+                // Also offer to create the full search text under root folders (only if not a path search)
+                if(!lastPart) {
+                    rootNodes.forEach(x => {
+                        newBtns.push({
+                            title: text, id: 'NEW',
+                            parentTitle: x.title,
+                            parentId: x.id, children: []
+                        })
+                    })
+                }
+                
+                if(!lastPart && filteredNodes.length > 0) newCursor += newBtns.length
+                // console.debug("Not found ...", text)
+                this.setState({ categoryNodes: [...newBtns, ...filteredNodes], cursor: newCursor })
             } else {
-                this.initBookmarkNodes()
+                this.setState({ categoryNodes: filteredNodes, cursor: newCursor })
             }
-        }, 150)(e);
+
+        } else {
+            this.initBookmarkNodes()
+        }
     }
     onRejected = (error) => {
         alert(error)
@@ -198,12 +214,11 @@ class Popup extends React.Component {
                 categoryNodes.forEach(node => {
                     if (node.children && node.children.length > 0) {
                         for (let i = 0; i < node.children.length; i++) {
-                            if (node.children[i].url) {
-                                const bookmarkUrl = helper.removeHashtag(node.children[i].url)
-                                if (bookmarkUrl === currentUrl) {
-                                    urlMap.set(node.id, true)
-                                    break
-                                }
+                            const rawUrl = node.children[i].url
+                            // Avoid the hashtag split for the common case (URLs without '#')
+                            if (rawUrl && (rawUrl === currentUrl || (rawUrl.indexOf('#') >= 0 && helper.removeHashtag(rawUrl) === currentUrl))) {
+                                urlMap.set(node.id, true)
+                                break
                             }
                         }
                     }
@@ -211,13 +226,14 @@ class Popup extends React.Component {
             }
 
             // Process nodes in single pass - combine pinyin and containsCurrentTab
-            const chineseRegex = isSupportPinyin ? /[\u3400-\u9FBF]/ : null
             categoryNodes.forEach(node => {
-                // Add pinyin if supported
-                if (chineseRegex && chineseRegex.test(node.title)) {
-                    node.pinyinTitle = Pinyin.convertToPinyin(node.title, ' ', true)
-                } else if (isSupportPinyin) {
-                    node.pinyinTitle = node.title
+                // Add pinyin if supported (otherwise pinyinTitle isn't indexed)
+                if (isSupportPinyin) {
+                    if (/[\u3400-\u9FBF]/.test(node.title)) {
+                        node.pinyinTitle = Pinyin.convertToPinyin(node.title, ' ', true)
+                    } else {
+                        node.pinyinTitle = node.title
+                    }
                 }
                 
                 // Set containsCurrentTab from map
@@ -227,12 +243,14 @@ class Popup extends React.Component {
             // Sort once at the end
             const sortedNodes = categoryNodes.sort(helper.sortNodes)
 
+            // Keep a reference for lazy Fuse index construction on first search
+            this.allCategoryNodes = sortedNodes
+
             this.setState({
                 rootNodes: bookmarkItems[0].children,
                 categoryNodes: sortedNodes,
                 currentActiveTab: currentTab,
-                cursor: sortedNodes.length > cursor ? cursor : 0,
-                fuzzySearch: new fuzzySearch(categoryNodes)
+                cursor: sortedNodes.length > cursor ? cursor : 0
             })
         }, this.onRejected)
     }

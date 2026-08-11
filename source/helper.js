@@ -11,22 +11,25 @@ export const filterRecursively = (nodeArray, parentNode, filterFn, results) => {
 
   for (let i = 0; i < nodeArray.length; i++) {
     const node = nodeArray[i];
-    
+    const hasChildren = node.children && node.children.length > 0;
+
     // Set titlePrefix efficiently
     node.titlePrefix = parentTitlePrefix;
 
-    // Set dirPath based on whether it's a bookmark or folder
-    if (node.url) {
-      node.dirPath = parentTitlePrefix ? `${parentTitlePrefix}${SEPARATOR}${node.title}` : node.title;
-    } else {
-      node.dirPath = parentTitlePrefix || node.title;
+    // Set dirPath based on whether it's a bookmark or folder.
+    // Leaf bookmarks are skipped: they are filtered out below and never
+    // searched or rendered, so computing their dirPath is wasted work.
+    if (!node.url || hasChildren) {
+      node.dirPath = node.url
+        ? (parentTitlePrefix ? `${parentTitlePrefix}${SEPARATOR}${node.title}` : node.title)
+        : (parentTitlePrefix || node.title);
     }
 
     // Apply filter and add to results
     if (filterFn(node)) results.push(node);
-    
+
     // Recursively process children if they exist
-    if (node.children && node.children.length > 0) {
+    if (hasChildren) {
       filterRecursively(node.children, node, filterFn, results);
     }
   }
