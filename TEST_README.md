@@ -1,21 +1,30 @@
 # Testing
 
-This project includes unit tests using Vitest and React Testing Library.
+This project has two test layers:
+
+1. **Unit/component tests** using Vitest + React Testing Library (`happy-dom`, mocked `webextension-polyfill`).
+2. **End-to-end tests against real Firefox** using Playwright. The built Firefox add-on is installed into a real Firefox via the remote debugging protocol (RDP), so Firefox performs real Manifest V3 validation and the background script runs against Firefox's actual APIs.
 
 ## Running Tests
 
 ```bash
-# Run all tests
-bun test
+# Unit tests (all environments)
+yarn test          # or: bunx vitest run
 
-# Run tests in watch mode
-bun test -- --watch
+# Watch mode
+yarn test --watch
 
-# Run tests with coverage
-bun test:coverage
+# Coverage
+yarn test:coverage
 
-# Run tests with UI
-bun test:ui
+# UI
+yarn test:ui
+
+# Firefox E2E (builds extension/firefox, then runs Playwright against real Firefox)
+yarn test:firefox:e2e
+
+# Firefox E2E headless
+yarn test:firefox:e2e:headless
 ```
 
 ## Test Structure
@@ -23,6 +32,22 @@ bun test:ui
 - `test/helper.test.js` - Tests for utility functions in `source/helper.js`
 - `test/CategoryItem.test.jsx` - Tests for CategoryItem component
 - `test/Popup.test.jsx` - Tests for Popup component
+- `test/Background.test.js` - Tests for the background service worker
+- `test/firefox.test.jsx` - Firefox-specific unit tests (browser detection, `node.title` folder filtering for string bookmark IDs, Firefox manifest generation)
+- `test/performance.test.jsx` - Configurable performance tests (see `test/performance.config.js`)
+- `e2e/extension.spec.mjs` - Playwright E2E tests that load the real Firefox add-on
+- `e2e/firefox-fixture.mjs` - Playwright fixture that launches real Firefox and installs `extension/firefox` over RDP
+
+## Firefox E2E Tests
+
+The Playwright suite (`playwright.config.mjs`, project `firefox`) verifies Firefox-specific behavior that unit tests cannot:
+
+- The add-on installs with the **stable gecko id** (`browser_specific_settings.gecko.id`) instead of a random temporary id
+- Firefox accepts the Manifest V3 **without warnings** (a `browser_specific_settings`/`applications` regression would fail here)
+- The **background script runs** in real Firefox
+- The built manifest uses `browser_specific_settings`, not the MV3-unsupported `applications` key
+
+Note: Firefox E2E launches Firefox (headed by default; set `HEADLESS=1` to run headless) and requires the Playwright Firefox browser to be installed (`npx playwright install firefox`).
 
 ## Test Coverage
 
