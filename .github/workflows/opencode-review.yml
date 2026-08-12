@@ -17,9 +17,7 @@ jobs:
           persist-credentials: false
       - uses: anomalyco/opencode/github@latest
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
           model: grok-4.5
           use_github_token: true
