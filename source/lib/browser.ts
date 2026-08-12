@@ -1,9 +1,9 @@
-/* global navigator */
 import browser from "webextension-polyfill";
+import type Browser from "webextension-polyfill";
 
 // Cache the detected name to avoid repeated UA parsing.
-let cachedBrowserName;
-export function getBrowserName() {
+let cachedBrowserName: string | undefined;
+export function getBrowserName(): string {
   if (cachedBrowserName) return cachedBrowserName;
 
   const ua = navigator.userAgent || "";
@@ -20,7 +20,7 @@ export function getBrowserName() {
 }
 
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/getCurrent
-export const getCurrentTab = () =>
+export const getCurrentTab = (): Promise<Browser.Tabs.Tab | undefined> =>
   browser.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => tabs[0]);

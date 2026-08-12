@@ -1,29 +1,34 @@
 import browser from "webextension-polyfill";
+import type Browser from "webextension-polyfill";
 import Pinyin from "tiny-pinyin";
 import { filterRecursively, sortNodes } from "../lib/tree";
+import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { getBrowserName, getCurrentTab } from "../lib/browser";
 import { removeHashtag } from "../lib/url";
 
 // A folder is a bookmark node without a url. Chrome/Opera/Edge assign
 // numeric ids, Firefox does not, so the browser-specific check differs.
-const isFolder = (node) => {
+const isFolder = (node: BookmarkTreeNode): boolean => {
   if (getBrowserName() === "firefox") {
-    return !node.url && node.title;
+    return !node.url && Boolean(node.title);
   }
-  return !node.url && node.id > 0;
+  return !node.url && Number(node.id) > 0;
 };
 
-const addPinyin = (node) => {
+const addPinyin = (node: FolderNode): void => {
   node.pinyinTitle = /[\u3400-\u9FBF]/.test(node.title)
     ? Pinyin.convertToPinyin(node.title, " ", true)
     : node.title;
 };
 
 // Map of folder id -> true when any direct child matches the current tab URL.
-const buildUrlMap = (folderNodes, currentTab) => {
+const buildUrlMap = (
+  folderNodes: FolderNode[],
+  currentTab: Browser.Tabs.Tab | null | undefined,
+): Map<string, boolean> | null => {
   if (!currentTab?.url) return null;
 
-  const urlMap = new Map();
+  const urlMap = new Map<string, boolean>();
   const currentUrl = removeHashtag(currentTab.url);
 
   for (const node of folderNodes) {
@@ -44,12 +49,22 @@ const buildUrlMap = (folderNodes, currentTab) => {
   return urlMap;
 };
 
+export interface LoadedBookmarks {
+  folderNodes: FolderNode[];
+  rootNodes: BookmarkTreeNode[];
+  currentTab: Browser.Tabs.Tab | null | undefined;
+}
+
 /*
  * Loads the bookmark tree and returns all folders with search metadata:
  * pinyin titles (when supported), whether they contain the current tab,
  * and a stable sort order (current-tab folders first, then by recency).
  */
-export async function loadBookmarkFolders({ isSupportPinyin }) {
+export async function loadBookmarkFolders({
+  isSupportPinyin,
+}: {
+  isSupportPinyin: boolean;
+}): Promise<LoadedBookmarks> {
   const [bookmarkItems, currentTab] = await Promise.all([
     browser.bookmarks.getTree(),
     getCurrentTab().catch(() => null), // Don't fail if tab query fails
@@ -70,7 +85,7 @@ export async function loadBookmarkFolders({ isSupportPinyin }) {
 
   return {
     folderNodes,
-    rootNodes: bookmarkItems[0].children,
+    rootNodes: bookmarkItems[0]?.children ?? [],
     currentTab,
   };
 }

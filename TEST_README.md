@@ -29,12 +29,12 @@ yarn test:firefox:e2e:headless
 
 ## Test Structure
 
-- `test/helper.test.js` - Tests for utility functions in `source/helper.js`
-- `test/CategoryItem.test.jsx` - Tests for CategoryItem component
-- `test/Popup.test.jsx` - Tests for Popup component
-- `test/Background.test.js` - Tests for the background service worker
-- `test/firefox.test.jsx` - Firefox-specific unit tests (browser detection, `node.title` folder filtering for string bookmark IDs, Firefox manifest generation)
-- `test/performance.test.jsx` - Configurable performance tests (see `test/performance.config.js`)
+- `test/helper.test.ts` - Tests for utility functions in `source/lib`
+- `test/CategoryItem.test.tsx` - Tests for CategoryItem component
+- `test/Popup.test.tsx` - Tests for Popup component
+- `test/Background.test.ts` - Tests for the background service worker
+- `test/firefox.test.tsx` - Firefox-specific unit tests (browser detection, `node.title` folder filtering for string bookmark IDs, Firefox manifest generation)
+- `test/performance.test.tsx` - Configurable performance tests (see `test/performance.config.ts`)
 - `e2e/extension.spec.mjs` - Playwright E2E tests that load the real Firefox add-on
 - `e2e/firefox-fixture.mjs` - Playwright fixture that launches real Firefox and installs `extension/firefox` over RDP
 
@@ -79,4 +79,4 @@ The test suite currently covers:
 
 - Component tests require proper mocking of `webextension-polyfill` API
 - Tests use `happy-dom` for lightweight DOM simulation
-- Browser APIs (bookmarks, tabs) are fully mocked in `test/setup.js`
+- Browser APIs (bookmarks, tabs) are fully mocked in `test/setup.ts`

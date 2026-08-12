@@ -1,22 +1,22 @@
-import { defineConfig } from 'vitest/config';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import path from "path";
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'happy-dom',
-    setupFiles: './test/setup.js',
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
+    environment: "happy-dom",
+    setupFiles: "./test/setup.ts",
+    exclude: ["e2e/**", "node_modules/**", "dist/**"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
     },
     mockReset: true,
     restoreMocks: true,
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './source'),
+      "@": path.resolve(__dirname, "./source"),
     },
   },
 });

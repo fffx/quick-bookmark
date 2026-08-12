@@ -15,10 +15,6 @@ const destPath = path.join(__dirname, "extension");
 const nodeEnv = process.env.NODE_ENV || "development";
 const targetBrowser = process.env.TARGET_BROWSER;
 
-const extensionReloaderPlugin = () => {
-  this.apply = () => {};
-};
-
 const getExtensionFileType = (browser) => {
   if (browser === "opera") {
     return "crx";
@@ -45,8 +41,8 @@ module.exports = {
 
   entry: {
     manifest: path.join(sourcePath, "manifest.json"),
-    background: path.join(sourcePath, "Background", "index.js"),
-    popup: path.join(sourcePath, "Popup", "index.jsx"),
+    background: path.join(sourcePath, "Background", "index.ts"),
+    popup: path.join(sourcePath, "Popup", "index.tsx"),
   },
 
   output: {
@@ -55,7 +51,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: [".js", ".jsx", ".json"],
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
     alias: {
       "webextension-polyfill": path.resolve(
         path.join(__dirname, "node_modules", "webextension-polyfill"),
@@ -66,7 +62,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /webextension-polyfill[\\\/]dist[\\\/]browser-polyfill\.js$/,
+        test: /webextension-polyfill[\\/]dist[\\/]browser-polyfill\.js$/,
         use: {
           loader: "babel-loader",
           options: {

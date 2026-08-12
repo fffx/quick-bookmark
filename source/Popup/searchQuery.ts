@@ -1,8 +1,31 @@
 import { fullTitle } from "../lib/tree";
+import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
+import type FuseIndex from "./searchEngine";
+import type { SearchNode } from "./searchEngine";
 
 // A "NEW" entry that lets the user create a folder and bookmark the current
 // tab into it in one step.
-const createNewFolderButton = (title, parentNode) => ({
+export interface NewFolderNode {
+  title: string;
+  id: "NEW";
+  parentTitle: string;
+  parentId: string;
+  children: never[];
+  titlePrefix?: string | null;
+  containsCurrentTab?: boolean;
+}
+
+export type CategoryNode = FolderNode | NewFolderNode;
+
+// FolderNode.id is a plain string, so `node.id === "NEW"` cannot narrow the
+// union on its own; use this predicate instead.
+export const isNewFolderNode = (node: CategoryNode): node is NewFolderNode =>
+  node.id === "NEW";
+
+const createNewFolderButton = (
+  title: string,
+  parentNode: SearchNode,
+): NewFolderNode => ({
   title,
   id: "NEW",
   parentTitle: fullTitle(parentNode),
@@ -13,7 +36,12 @@ const createNewFolderButton = (title, parentNode) => ({
 // True when the typed path (e.g. "foo / bar") matches an existing folder
 // plus one of its children, so the search should select it rather than
 // offering to create a new one.
-const hasExactPathMatch = (search, parentPath, lastPart, filteredNodes) => {
+const hasExactPathMatch = (
+  search: FuseIndex,
+  parentPath: string,
+  lastPart: string,
+  filteredNodes: SearchNode[],
+): boolean => {
   const parentMatches = search.search(parentPath);
   if (parentMatches.length === 0 || parentMatches[0].title !== parentPath) {
     return false;
@@ -31,6 +59,11 @@ const hasExactPathMatch = (search, parentPath, lastPart, filteredNodes) => {
   });
 };
 
+export interface SearchResults {
+  categoryNodes: CategoryNode[];
+  cursor: number;
+}
+
 /*
  * Computes the list of items to show for a search query.
  *
@@ -38,14 +71,23 @@ const hasExactPathMatch = (search, parentPath, lastPart, filteredNodes) => {
  * to match the parent folder "foo" and offers to create "bar" inside it;
  * otherwise the full query is offered as a new folder under each root node.
  */
-export const buildSearchResults = (text, { rootNodes, search }) => {
+export const buildSearchResults = (
+  text: string,
+  {
+    rootNodes,
+    search,
+  }: {
+    rootNodes: BookmarkTreeNode[];
+    search: FuseIndex;
+  },
+): SearchResults => {
   const texts = text.split("/").map((x) => x.trim());
   const isPathSearch = texts.length > 1;
 
-  let lastPart = null;
+  let lastPart: string | null = null;
   let parentPath = text;
   if (isPathSearch) {
-    lastPart = texts.pop();
+    lastPart = texts.pop()!;
     parentPath = texts.join(" / ");
   }
 
@@ -58,13 +100,13 @@ export const buildSearchResults = (text, { rootNodes, search }) => {
   // For path searches, check if we have an exact match for the child in the parent
   const hasExactChildMatch =
     isPathSearch &&
-    hasExactPathMatch(search, parentPath, lastPart, filteredNodes);
+    hasExactPathMatch(search, parentPath, lastPart!, filteredNodes);
 
   if (hasExactMatch || hasExactChildMatch) {
     return { categoryNodes: filteredNodes, cursor: 0 };
   }
 
-  const newBtns = [];
+  const newBtns: NewFolderNode[] = [];
 
   // If we have a path like "foo / bar", search for parent directories
   // matching "foo" and offer to create "bar" inside them.
@@ -74,7 +116,7 @@ export const buildSearchResults = (text, { rootNodes, search }) => {
     const targets =
       parentMatches.length > 0 ? parentMatches : filteredNodes.slice(0, 5);
     targets.forEach((x) => {
-      newBtns.push(createNewFolderButton(lastPart, x));
+      newBtns.push(createNewFolderButton(lastPart!, x));
     });
   } else {
     // Also offer to create the full search text under root folders
@@ -89,7 +131,11 @@ export const buildSearchResults = (text, { rootNodes, search }) => {
 
 // Slice of categoryNodes to render around the cursor, so only a fixed number
 // of items is mounted at once (performance for very large trees).
-export const getVisibleWindow = (nodes, cursor, maxVisibleItems) => {
+export const getVisibleWindow = (
+  nodes: CategoryNode[],
+  cursor: number,
+  maxVisibleItems: number,
+): { visibleNodes: CategoryNode[]; startIndex: number } => {
   if (nodes.length <= maxVisibleItems) {
     return { visibleNodes: nodes, startIndex: 0 };
   }

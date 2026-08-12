@@ -1,8 +1,10 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
+
+import type { MockBrowser } from "./globals";
 
 // Single browser mock shared by global.browser and webextension-polyfill
-const browser = {
+const browser: MockBrowser = {
   action: {
     setBadgeText: vi.fn(),
   },
@@ -34,9 +36,9 @@ const browser = {
     },
   },
   runtime: {
-    id: 'test-extension-id',
+    id: "test-extension-id",
     getManifest: vi.fn(() => ({})),
-    getURL: vi.fn((path) => `chrome-extension://test/${path}`),
+    getURL: vi.fn((path: string) => `chrome-extension://test/${path}`),
   },
 };
 
@@ -49,15 +51,15 @@ global.chrome = {
 global.globalThis.chrome = global.chrome;
 
 // Mock webextension-polyfill to return the same browser object used in tests
-vi.mock('webextension-polyfill', () => ({
+vi.mock("webextension-polyfill", () => ({
   default: globalThis.__testBrowser,
 }));
 
 // Mock navigator.languages
-Object.defineProperty(navigator, 'languages', {
+Object.defineProperty(navigator, "languages", {
   writable: true,
   configurable: true,
-  value: ['en-US'],
+  value: ["en-US"],
 });
 
 // Mock window.close
