@@ -21,20 +21,13 @@ module.exports = [
 
   js.configs.recommended,
 
-  // Node.js config files (CommonJS)
+  // Node.js config files (ESM)
   {
-    files: [
-      "eslint.config.js",
-      "webpack.config.js",
-      "vitest.config.js",
-      "babel.config.js",
-    ],
+    files: ["vitest.config.js", "playwright.config.mjs"],
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: {
-        require: "readonly",
-        module: "readonly",
         process: "readonly",
         __dirname: "readonly",
         console: "readonly",
@@ -76,6 +69,24 @@ module.exports = [
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "prettier/prettier": "warn",
+    },
+  },
+
+  // Node.js config files (CommonJS). Kept after the generic JS block so the
+  // `sourceType: "commonjs"` wins over the default module sourceType above
+  // (globals merge across blocks, but scalars are last-match-wins).
+  {
+    files: ["eslint.config.js", "webpack.config.js", "babel.config.js"],
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "commonjs",
+      globals: {
+        require: "readonly",
+        module: "readonly",
+        process: "readonly",
+        __dirname: "readonly",
+        console: "readonly",
+      },
     },
   },
 
