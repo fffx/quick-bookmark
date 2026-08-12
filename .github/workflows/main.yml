@@ -16,6 +16,24 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # Unit + performance tests, kept separate from the build so a slow test run
+  # doesn't delay releasing. Performance tests are retried once to tolerate
+  # noisy shared runners.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: latest
+      - run: yarn install
+      - name: Unit tests
+        run: yarn vitest run --exclude test/performance.test.jsx
+      - name: Performance tests
+        run: yarn vitest run test/performance.test.jsx --retry 2
+
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
