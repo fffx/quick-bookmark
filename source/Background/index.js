@@ -3,7 +3,7 @@ import browser from "webextension-polyfill";
 import { isSameBookmarkUrl } from "../lib/url";
 import { collectMatchingNodes } from "../lib/tree";
 
-// show number of bookmark folders containing current tab
+// show number of bookmarks matching current tab
 let currentTab;
 function updateBadge(tab, bookmarks) {
   const text = bookmarks.length > 0 ? `${bookmarks.length}` : "";
