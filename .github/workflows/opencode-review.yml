@@ -21,7 +21,7 @@ jobs:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: xai/grok-4.5
+          model: grok-4.5
           use_github_token: true
           prompt: |
             Review this pull request:
