@@ -30,9 +30,9 @@ jobs:
           node-version: latest
       - run: yarn install
       - name: Unit tests
-        run: yarn vitest run --exclude test/performance.test.jsx
+        run: yarn vitest run --exclude test/performance.test.tsx
       - name: Performance tests
-        run: yarn vitest run test/performance.test.jsx --retry 2
+        run: yarn vitest run test/performance.test.tsx --retry 2
 
   # This workflow contains a single job called "build"
   build:

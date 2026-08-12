@@ -1,4 +1,14 @@
 import Fuse from "fuse.js";
+import type { FuseOptionKey } from "fuse.js";
+import type { BookmarkTreeNode } from "../lib/tree";
+
+// A bookmark node annotated with search metadata.
+export type SearchNode = BookmarkTreeNode & {
+  titlePrefix?: string | null;
+  dirPath?: string | null;
+  pinyinTitle?: string;
+  firstLetter?: string;
+};
 
 const FUSE_OPTIONS = {
   // https://www.fusejs.io/concepts/scoring-theory.html#fuzziness-score
@@ -9,8 +19,10 @@ const FUSE_OPTIONS = {
 };
 
 export default class FuseIndex {
-  constructor(categoryNodes, isSupportPinyin) {
-    const keys = [
+  private fuse: Fuse<SearchNode>;
+
+  constructor(categoryNodes: SearchNode[], isSupportPinyin: boolean) {
+    const keys: FuseOptionKey<SearchNode>[] = [
       { name: "title", weight: 5 },
       { name: "dirPath", weight: 6 },
     ];
@@ -22,7 +34,7 @@ export default class FuseIndex {
     this.fuse = new Fuse(categoryNodes, { ...FUSE_OPTIONS, keys });
   }
 
-  search(str, limit = 1000) {
+  search(str: string, limit = 1000): SearchNode[] {
     return this.fuse.search(str, { limit }).map((x) => x.item);
   }
 }

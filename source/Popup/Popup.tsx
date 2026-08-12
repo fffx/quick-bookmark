@@ -5,19 +5,22 @@ import React, {
   useRef,
   useState,
 } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import browser from "webextension-polyfill";
 import Pinyin from "tiny-pinyin";
 import { CategoryItem } from "./CategoryItem";
 import FuseIndex from "./searchEngine";
 import { loadBookmarkFolders } from "./loadBookmarks";
 import { buildSearchResults, getVisibleWindow } from "./searchQuery";
+import type { CategoryNode } from "./searchQuery";
+import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { debounce } from "../lib/debounce";
 import { sortNodes } from "../lib/tree";
 
 import "./styles.scss";
 
 // Only enable Pinyin if Chinese is in the user's preferred languages.
-const detectPinyinSupport = () => {
+const detectPinyinSupport = (): boolean => {
   const userLanguages = navigator.languages || [navigator.language];
   const isChinesePreferred = userLanguages.some((lang) =>
     lang.toLowerCase().startsWith("zh"),
@@ -25,19 +28,23 @@ const detectPinyinSupport = () => {
   return isChinesePreferred && Pinyin.isSupported();
 };
 
-export default function Popup({ maxVisibleItems = 50 }) {
+export interface PopupProps {
+  maxVisibleItems?: number;
+}
+
+export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const [isSupportPinyin] = useState(detectPinyinSupport);
   // Complete, sorted folder list. Used to build the search index.
-  const [allFolderNodes, setAllFolderNodes] = useState([]);
+  const [allFolderNodes, setAllFolderNodes] = useState<FolderNode[]>([]);
   // Currently displayed items (full list or search results).
-  const [categoryNodes, setCategoryNodes] = useState([]);
-  const [rootNodes, setRootNodes] = useState([]);
+  const [categoryNodes, setCategoryNodes] = useState<CategoryNode[]>([]);
+  const [rootNodes, setRootNodes] = useState<BookmarkTreeNode[]>([]);
   const [cursor, setCursor] = useState(0);
   const [saveDomainOnly, setSaveDomainOnly] = useState(false);
   const [resorted, setResorted] = useState(false); // resort after child check
 
-  const focusedCategoryItem = useRef(null);
-  const filterInput = useRef(null);
+  const focusedCategoryItem = useRef<HTMLDivElement | null>(null);
+  const filterInput = useRef<HTMLInputElement | null>(null);
 
   // Lazy Fuse index, rebuilt whenever the folder list changes.
   const searchIndex = useMemo(
@@ -56,7 +63,7 @@ export default function Popup({ maxVisibleItems = 50 }) {
   }, [isSupportPinyin]);
 
   const handleSearchInput = useCallback(
-    (text) => {
+    (text: string) => {
       if (!text) {
         initBookmarkNodes();
         return;
@@ -77,10 +84,10 @@ export default function Popup({ maxVisibleItems = 50 }) {
     handleSearchInputRef.current = handleSearchInput;
   }, [handleSearchInput]);
   const onSearchInput = useRef(
-    debounce((text) => handleSearchInputRef.current(text), 150),
+    debounce((text: string) => handleSearchInputRef.current(text), 150),
   );
 
-  const onInputChange = useCallback((e) => {
+  const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     onSearchInput.current(e.target.value);
   }, []);
 
@@ -91,7 +98,7 @@ export default function Popup({ maxVisibleItems = 50 }) {
 
   // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
   const onKeyDown = useCallback(
-    (e) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.altKey) {
         setSaveDomainOnly(true);
       }
@@ -109,7 +116,7 @@ export default function Popup({ maxVisibleItems = 50 }) {
     [cursor, categoryNodes.length],
   );
 
-  const onKeyUp = useCallback((e) => {
+  const onKeyUp = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Alt") {
       setSaveDomainOnly(false);
     }

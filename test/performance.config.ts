@@ -1,7 +1,7 @@
 // Configurable settings for the performance (pressure) test.
 //
 // Every value can be overridden via environment variables, e.g.:
-//   PERF_FOLDERS=100 PERF_BASELINE_RENDER_MS=100 vitest run test/performance.test.jsx
+//   PERF_FOLDERS=100 PERF_BASELINE_RENDER_MS=100 vitest run test/performance.test.tsx
 //
 // Two gates are enforced and the stricter one wins:
 //   1. Baseline-ratio: measured time must stay below
@@ -12,12 +12,12 @@
 
 /* global process */
 
-const toInt = (name, defaultValue) => {
+const toInt = (name: string, defaultValue: number): number => {
   const value = Number(process.env[name]);
   return Number.isFinite(value) && value >= 0 ? value : defaultValue;
 };
 
-const toNumber = (name, defaultValue) => {
+const toNumber = (name: string, defaultValue: number): number => {
   const value = Number(process.env[name]);
   return Number.isFinite(value) && value > 0 ? value : defaultValue;
 };
@@ -53,7 +53,22 @@ const effectiveThresholds = {
   ),
 };
 
-export const perfConfig = {
+export interface PerfConfig {
+  folderCount: number;
+  subFoldersMin: number;
+  subFoldersMax: number;
+  bookmarksPerFolderMin: number;
+  bookmarksPerFolderMax: number;
+  bookmarksPerSubFolder: number;
+  maxVisibleItems: number;
+  sampleCount: number;
+  baseline: typeof baseline;
+  budgetMultiplier: number;
+  renderThresholdMs: number;
+  filterThresholdMs: number;
+}
+
+export const perfConfig: PerfConfig = {
   // Number of top-level folders
   folderCount: toInt("PERF_FOLDERS", 300),
   // Each folder gets a random number of subfolders in this range
