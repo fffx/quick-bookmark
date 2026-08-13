@@ -32,6 +32,7 @@ yarn test:firefox:e2e:headless
 - `test/helper.test.ts` - Tests for utility functions in `source/lib`
 - `test/CategoryItem.test.tsx` - Tests for CategoryItem component
 - `test/Popup.test.tsx` - Tests for Popup component
+- `test/search.test.tsx` - Tests for Popup search (prefix matching, child folder matching, new-folder fallback)
 - `test/Background.test.ts` - Tests for the background service worker
 - `test/firefox.test.tsx` - Firefox-specific unit tests (browser detection, `node.title` folder filtering for string bookmark IDs, Firefox manifest generation)
 - `test/performance.test.tsx` - Configurable performance tests (see `test/performance.config.ts`)
