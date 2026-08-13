@@ -1,21 +1,26 @@
-const path = require("path");
-const webpack = require("webpack");
-const FilemanagerPlugin = require("filemanager-webpack-plugin");
-const TerserPlugin = require("terser-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const WextManifestWebpackPlugin = require("wext-manifest-webpack-plugin");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+import path from "path";
+import webpack from "webpack";
+import type { Configuration } from "webpack";
+import FilemanagerPlugin from "filemanager-webpack-plugin";
+import TerserPlugin from "terser-webpack-plugin";
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import WextManifestWebpackPlugin from "wext-manifest-webpack-plugin";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import sassEmbedded from "sass-embedded";
 
-const viewsPath = path.join(__dirname, "views");
-const sourcePath = path.join(__dirname, "source");
-const destPath = path.join(__dirname, "extension");
-const nodeEnv = process.env.NODE_ENV || "development";
-const targetBrowser = process.env.TARGET_BROWSER;
+const rootPath = process.cwd();
+const viewsPath = path.join(rootPath, "views");
+const sourcePath = path.join(rootPath, "source");
+const destPath = path.join(rootPath, "extension");
+const nodeEnv = (process.env.NODE_ENV || "development") as
+  | "development"
+  | "production";
+const targetBrowser = process.env.TARGET_BROWSER as string;
 
-const getExtensionFileType = (browser) => {
+const getExtensionFileType = (browser: string) => {
   if (browser === "opera") {
     return "crx";
   }
@@ -27,7 +32,7 @@ const getExtensionFileType = (browser) => {
   return "zip";
 };
 
-module.exports = {
+const config: Configuration = {
   devtool: false, // https://github.com/webpack/webpack/issues/1194#issuecomment-560382342
 
   stats: {
@@ -54,7 +59,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
     alias: {
       "webextension-polyfill": path.resolve(
-        path.join(__dirname, "node_modules", "webextension-polyfill"),
+        path.join(rootPath, "node_modules", "webextension-polyfill"),
       ),
     },
   },
@@ -133,7 +138,7 @@ module.exports = {
             loader: "sass-loader", // Takes the Sass/SCSS file and compiles to the CSS
             options: {
               sourceMap: true,
-              implementation: require("sass-embedded"),
+              implementation: sassEmbedded,
             },
           },
         ],
@@ -213,3 +218,5 @@ module.exports = {
     ],
   },
 };
+
+export default config;

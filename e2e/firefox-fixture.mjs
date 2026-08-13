@@ -33,7 +33,6 @@ export const test = base.extend({
     const firefoxUserPrefs = overrides.userPrefs();
 
     const context = await firefox.launchPersistentContext('', {
-      /* global process */
       headless: process.env.HEADLESS === '1',
       args,
       firefoxUserPrefs,

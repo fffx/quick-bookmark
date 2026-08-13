@@ -23,8 +23,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:firefox:e2e": "yarn run build:firefox && playwright test --config=playwright.config.mjs",
-    "test:firefox:e2e:headless": "yarn run build:firefox && HEADLESS=1 playwright test --config=playwright.config.mjs",
+    "test:firefox:e2e": "yarn run build:firefox && playwright test --config=playwright.config.ts",
+    "test:firefox:e2e:headless": "yarn run build:firefox && HEADLESS=1 playwright test --config=playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
@@ -91,6 +91,7 @@
     "sass": "^1.92.1",
     "sass-embedded": "^1.79.4",
     "sass-loader": "^16.0.5",
+    "sucrase": "^3.35.1",
     "terser-webpack-plugin": "^5.3.14",
     "typescript": "^5.6.3",
     "vitest": "^4.0.6",

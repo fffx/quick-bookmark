@@ -19,5 +19,5 @@
     },
     "types": ["node", "vitest/globals"]
   },
-  "include": ["source", "test"]
+  "include": ["source", "test", "webpack.config.ts", "vitest.config.ts", "playwright.config.ts", "eslint.config.ts"]
 }

@@ -40,7 +40,7 @@ yarn test:firefox:e2e:headless
 
 ## Firefox E2E Tests
 
-The Playwright suite (`playwright.config.mjs`, project `firefox`) verifies Firefox-specific behavior that unit tests cannot:
+The Playwright suite (`playwright.config.ts`, project `firefox`) verifies Firefox-specific behavior that unit tests cannot:
 
 - The add-on installs with the **stable gecko id** (`browser_specific_settings.gecko.id`) instead of a random temporary id
 - Firefox accepts the Manifest V3 **without warnings** (a `browser_specific_settings`/`applications` regression would fail here)
