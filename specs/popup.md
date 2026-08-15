@@ -18,8 +18,11 @@ keyboard shortcut and closes itself after a successful add/remove.
 1. `loadBookmarkFolders()` fetches the bookmark tree and the active tab in
    parallel; a tab-query failure degrades to `currentTab = null` rather than
    failing the load.
-2. Folders are annotated (paths, pinyin, `containsCurrentTab`) and sorted:
-   current-tab folders first, then `dateGroupModified` descending.
+2. Folders are annotated (paths, pinyin, `containsCurrentTab`,
+   `urlMatchScore`) and sorted: current-tab folders first; when the tab is
+   not saved, folders ranked by match quality (same origin/host, folder
+   title keyword from the tab URL, child bookmark keyword), then
+   `dateGroupModified` descending.
 3. The full sorted folder list is displayed with the cursor at row 0.
 4. The search input is focused on open and re-focused whenever the browser
    window regains focus (`windows.onFocusChanged`); `onBlur` immediately

@@ -3,7 +3,11 @@ import type Browser from "webextension-polyfill";
 import { filterRecursively, sortNodes } from "../lib/tree";
 import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { getBrowserName, getCurrentTab } from "../lib/browser";
-import { removeHashtag } from "../lib/url";
+import {
+  buildFolderMatchContext,
+  folderMatchScore,
+  isSameBookmarkUrl,
+} from "../lib/url";
 
 // A folder is a bookmark node without a url. Chrome/Opera/Edge assign
 // numeric ids, Firefox does not, so the browser-specific check differs.
@@ -27,33 +31,52 @@ const addPinyin = (
     : node.title;
 };
 
-// Map of folder id -> true when any direct child matches the current tab URL.
-const buildUrlMap = (
+// Fast path: only exact URL match (fragment stripped). Cheap enough for the
+// critical popup path so the list can paint immediately.
+const markContainsCurrentTab = (
   folderNodes: FolderNode[],
   currentTab: Browser.Tabs.Tab | null | undefined,
-): Map<string, boolean> | null => {
-  if (!currentTab?.url) return null;
-
-  const urlMap = new Map<string, boolean>();
-  const currentUrl = removeHashtag(currentTab.url);
-
+): void => {
+  const tabUrl = currentTab?.url;
   for (const node of folderNodes) {
-    if (!node.children || node.children.length === 0) continue;
+    node.urlMatchScore = 0;
+    node.containsCurrentTab = false;
+    if (!tabUrl || !node.children?.length) continue;
     for (const child of node.children) {
-      const rawUrl = child.url;
-      // Avoid the hashtag split for the common case (URLs without '#').
-      if (
-        rawUrl &&
-        (rawUrl === currentUrl ||
-          (rawUrl.includes("#") && removeHashtag(rawUrl) === currentUrl))
-      ) {
-        urlMap.set(node.id, true);
+      if (isSameBookmarkUrl(tabUrl, child.url)) {
+        node.containsCurrentTab = true;
+        node.urlMatchScore = 5;
         break;
       }
     }
   }
-  return urlMap;
 };
+
+/*
+ * Full ranking for unsaved tabs: origin/host, folder-title keywords, and
+ * child-bookmark keywords. Intended to run after the popup has painted
+ * (idle/next tick) so it does not delay the first frame.
+ */
+export function rankFoldersForTab(
+  folderNodes: FolderNode[],
+  tabUrl: string | null | undefined,
+): FolderNode[] {
+  // Tab already saved: exact-match folders are first; skip expensive walk.
+  if (!tabUrl || folderNodes.some((n) => n.containsCurrentTab)) {
+    return folderNodes;
+  }
+
+  const ctx = buildFolderMatchContext(tabUrl);
+  if (!ctx) return folderNodes;
+
+  for (const node of folderNodes) {
+    const score = folderMatchScore(ctx, node);
+    node.urlMatchScore = score;
+    node.containsCurrentTab = score === 5;
+  }
+  folderNodes.sort(sortNodes);
+  return folderNodes;
+}
 
 export interface LoadedBookmarks {
   folderNodes: FolderNode[];
@@ -63,8 +86,9 @@ export interface LoadedBookmarks {
 
 /*
  * Loads the bookmark tree and returns all folders with search metadata:
- * pinyin titles (when supported), whether they contain the current tab,
- * and a stable sort order (current-tab folders first, then by recency).
+ * pinyin titles (when supported), whether they contain the current tab
+ * (exact URL only), sorted current-tab first then by recency.
+ * Keyword/origin suggestions are applied later via rankFoldersForTab().
  */
 export async function loadBookmarkFolders({
   isSupportPinyin,
@@ -85,11 +109,7 @@ export async function loadBookmarkFolders({
     folderNodes.forEach((node) => addPinyin(node, convertToPinyin));
   }
 
-  const urlMap = buildUrlMap(folderNodes, currentTab);
-  folderNodes.forEach((node) => {
-    node.containsCurrentTab = urlMap ? urlMap.get(node.id) === true : false;
-  });
-
+  markContainsCurrentTab(folderNodes, currentTab);
   folderNodes.sort(sortNodes);
 
   return {

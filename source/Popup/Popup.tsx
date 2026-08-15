@@ -9,7 +9,7 @@ import type { ChangeEvent, KeyboardEvent } from "react";
 import browser from "webextension-polyfill";
 import { CategoryItem } from "./CategoryItem";
 import FuseIndex from "./searchEngine";
-import { loadBookmarkFolders } from "./loadBookmarks";
+import { loadBookmarkFolders, rankFoldersForTab } from "./loadBookmarks";
 import {
   buildSearchResults,
   getVisibleWindow,
@@ -78,13 +78,36 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
 
   const initBookmarkNodes = useCallback(async () => {
     if (isSupportPinyin === null) return;
-    const { folderNodes, rootNodes } = await loadBookmarkFolders({
+    const { folderNodes, rootNodes, currentTab } = await loadBookmarkFolders({
       isSupportPinyin,
     });
+    // Paint the fast exact-URL sort first; keyword ranking runs idle below.
     setAllFolderNodes(folderNodes);
     setRootNodes(rootNodes);
     setCategoryNodes(folderNodes);
     setCursor((prev) => (folderNodes.length > prev ? prev : 0));
+
+    const tabUrl = currentTab?.url;
+    if (!tabUrl || folderNodes.some((n) => n.containsCurrentTab)) return;
+
+    const applyRanking = () => {
+      const ranked = rankFoldersForTab(folderNodes, tabUrl);
+      // Only refresh the default list; leave an active search alone.
+      if (filterInput.current?.value) {
+        setAllFolderNodes(ranked.slice());
+        return;
+      }
+      setAllFolderNodes(ranked.slice());
+      setCategoryNodes(ranked.slice());
+      setCursor(0);
+    };
+
+    // After first paint so popup open stays snappy on large trees.
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(applyRanking, { timeout: 200 });
+    } else {
+      setTimeout(applyRanking, 0);
+    }
   }, [isSupportPinyin]);
 
   const handleSearchInput = useCallback(

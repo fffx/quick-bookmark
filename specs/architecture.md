@@ -30,7 +30,7 @@ source/
     styles.scss
   lib/
     tree.ts              # BookmarkTreeNode/FolderNode types, tree walkers, sort
-    url.ts               # removeHashtag, isSameBookmarkUrl
+    url.ts               # removeHashtag, isSameBookmarkUrl, urlMatchScore
     browser.ts           # getBrowserName (cached UA sniff), getCurrentTab
     debounce.ts          # generic debounce
     constants.ts         # SEPARATOR = " / "
@@ -53,8 +53,8 @@ getCurrentTab() ─────────────┘        │
         titlePrefix ("Root / Parent") and dirPath
                                       │
         addPinyin() (zh users only) ──┤
-        buildUrlMap() → containsCurrentTab flags
-        sortNodes() (current-tab first, then recency)
+        buildUrlScores() → containsCurrentTab + urlMatchScore
+        sortNodes() (current-tab first, URL match, then recency)
                                       ▼
               allFolderNodes: FolderNode[] ──> FuseIndex (lazy, memoized)
                                       │
@@ -78,6 +78,10 @@ getCurrentTab() ─────────────┘        │
   - `dirPath` — full path of the folder (search key)
   - `pinyinTitle`, `firstLetter` — pinyin search keys (Chinese users only)
   - `containsCurrentTab` — whether a direct child's URL matches the active tab
+  - `urlMatchScore` — best match to the active tab (5 exact, 4 origin,
+    3 hostname, 2 folder-title keyword, 1 child keyword); used to suggest
+    folders when the tab is unsaved
+    url.ts helpers: `extractUrlKeywords`, `folderMatchScore`
 - `SearchNode` (`searchEngine.ts`) — the subset of fields Fuse indexes.
 - `NewFolderNode` (`searchQuery.ts`) — synthetic row with `id: "NEW"`,
   `parentId`, `parentTitle`; `isNewFolderNode()` is the type guard (plain

@@ -52,7 +52,11 @@ sniffing in `source/lib/browser.ts`.
      and `tiny-pinyin` reports support; pinyin fields are indexed for both
      full pinyin and first-letter (acronym) search.
 5. **Folders containing the current tab sort first** and are shown in bold
-   with a red "remove" icon; remaining folders sort by
+   with a red "remove" icon. When the tab is not bookmarked yet, folders
+   are ranked by URL/keyword match: same origin/host, folder title
+   matching a token from the tab URL (e.g. `java.com` → folder `java`),
+   or a child bookmark whose URL/title contains that token (e.g. folder
+   `programming` with `javablog.com`); remaining folders sort by
    `dateGroupModified` descending.
 6. **Toolbar badge** showing how many bookmarks point at the current tab's
    URL, updated live on tab/navigation/bookmark events.

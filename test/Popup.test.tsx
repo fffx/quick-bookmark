@@ -321,6 +321,100 @@ describe("Popup Component", () => {
     });
   });
 
+  it("should surface folder whose title matches a tab URL keyword", async () => {
+    global.browser.tabs.query.mockResolvedValue([
+      { url: "https://www.java.com/en/", title: "Java" },
+    ]);
+    global.browser.bookmarks.getTree.mockResolvedValue([
+      {
+        id: "0",
+        children: [
+          {
+            id: "1",
+            title: "Bookmarks Bar",
+            dateGroupModified: 300,
+            children: [
+              {
+                id: "2",
+                title: "java",
+                dateGroupModified: 50,
+                children: [
+                  { id: "3", title: "docs", url: "https://docs.oracle.com" },
+                ],
+              },
+              {
+                id: "4",
+                title: "News",
+                dateGroupModified: 200,
+                children: [
+                  { id: "5", title: "BBC", url: "https://bbc.com" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const { container } = render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/java/i)).toBeInTheDocument();
+    });
+
+    expect(container.querySelector(".focus")?.textContent).toMatch(/java/i);
+  });
+
+  it("should surface folder with child bookmarks matching tab URL keywords", async () => {
+    global.browser.tabs.query.mockResolvedValue([
+      { url: "https://www.java.com/en/", title: "Java" },
+    ]);
+    global.browser.bookmarks.getTree.mockResolvedValue([
+      {
+        id: "0",
+        children: [
+          {
+            id: "1",
+            title: "Bookmarks Bar",
+            dateGroupModified: 300,
+            children: [
+              {
+                id: "2",
+                title: "programming",
+                dateGroupModified: 50,
+                children: [
+                  {
+                    id: "3",
+                    title: "blog",
+                    url: "https://www.javablog.com",
+                  },
+                ],
+              },
+              {
+                id: "4",
+                title: "News",
+                dateGroupModified: 200,
+                children: [
+                  { id: "5", title: "BBC", url: "https://bbc.com" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const { container } = render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/programming/i)).toBeInTheDocument();
+    });
+
+    expect(container.querySelector(".focus")?.textContent).toMatch(
+      /programming/i,
+    );
+  });
+
   it("should not match Chinese folder by pinyin for non-Chinese users", async () => {
     Object.defineProperty(navigator, "languages", {
       writable: true,

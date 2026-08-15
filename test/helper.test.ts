@@ -2,7 +2,12 @@ import { describe, it, expect } from "vitest";
 import { filterRecursively, sortNodes } from "../source/lib/tree";
 import { debounce } from "../source/lib/debounce";
 import { getBrowserName, getCurrentTab } from "../source/lib/browser";
-import { removeHashtag, isSameBookmarkUrl } from "../source/lib/url";
+import {
+  removeHashtag,
+  isSameBookmarkUrl,
+  extractUrlKeywords,
+  folderMatchScore,
+} from "../source/lib/url";
 
 describe("helper functions", () => {
   describe("filterRecursively", () => {
@@ -74,6 +79,60 @@ describe("helper functions", () => {
     });
   });
 
+  describe("extractUrlKeywords", () => {
+    it("should pull meaningful tokens from host and path", () => {
+      expect(extractUrlKeywords("https://www.java.com/en/")).toEqual(["java"]);
+      expect(extractUrlKeywords("https://github.com/foo/bar")).toEqual([
+        "github",
+        "foo",
+        "bar",
+      ]);
+      expect(extractUrlKeywords(null)).toEqual([]);
+    });
+  });
+
+  describe("folderMatchScore", () => {
+    it("should score exact, origin, hostname, title keyword, child keyword", () => {
+      expect(
+        folderMatchScore("https://github.com/foo", {
+          title: "Other",
+          children: [{ url: "https://github.com/foo#x" }],
+        }),
+      ).toBe(5);
+      expect(
+        folderMatchScore("https://github.com/a", {
+          title: "Other",
+          children: [{ url: "https://github.com/b" }],
+        }),
+      ).toBe(4);
+      expect(
+        folderMatchScore("https://github.com/a", {
+          title: "Other",
+          children: [{ url: "http://github.com/a" }],
+        }),
+      ).toBe(3);
+      expect(
+        folderMatchScore("https://www.java.com/en/", {
+          title: "java",
+          children: [],
+        }),
+      ).toBe(2);
+      expect(
+        folderMatchScore("https://www.java.com/en/", {
+          title: "programming",
+          children: [{ url: "https://www.javablog.com", title: "blog" }],
+        }),
+      ).toBe(1);
+      expect(
+        folderMatchScore("https://github.com", {
+          title: "News",
+          children: [{ url: "https://bbc.com" }],
+        }),
+      ).toBe(0);
+      expect(folderMatchScore(null, { title: "x", children: [] })).toBe(0);
+    });
+  });
+
   describe("sortNodes", () => {
     it("should prioritize nodes containing current tab", () => {
       const nodes = [
@@ -85,6 +144,28 @@ describe("helper functions", () => {
 
       expect(sorted[0].title).toBe("A");
       expect(sorted[1].title).toBe("B");
+    });
+
+    it("should prioritize url match score when tab is not saved", () => {
+      const nodes = [
+        {
+          title: "Recent",
+          containsCurrentTab: false,
+          urlMatchScore: 0,
+          dateGroupModified: 200,
+        },
+        {
+          title: "Same host",
+          containsCurrentTab: false,
+          urlMatchScore: 2,
+          dateGroupModified: 50,
+        },
+      ];
+
+      const sorted = [...nodes].sort(sortNodes);
+
+      expect(sorted[0].title).toBe("Same host");
+      expect(sorted[1].title).toBe("Recent");
     });
 
     it("should sort by dateGroupModified when both have same containsCurrentTab", () => {

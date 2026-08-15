@@ -10,11 +10,15 @@ export interface FolderNode extends BookmarkTreeNode {
   pinyinTitle?: string;
   firstLetter?: string;
   containsCurrentTab?: boolean;
+  // Best match of this folder to the current tab (0–5). Used to surface
+  // likely folders when the tab is not bookmarked yet.
+  urlMatchScore?: number;
 }
 
 // Minimal shape needed by the sort comparator.
 export interface SortableNode {
   containsCurrentTab?: boolean;
+  urlMatchScore?: number;
   dateGroupModified?: number;
 }
 
@@ -32,9 +36,10 @@ export const sortNodes = (a: SortableNode, b: SortableNode): number => {
     return -1;
   } else if (b.containsCurrentTab && !a.containsCurrentTab) {
     return 1;
-  } else {
-    return (b.dateGroupModified ?? 0) - (a.dateGroupModified ?? 0);
   }
+  const scoreDiff = (b.urlMatchScore ?? 0) - (a.urlMatchScore ?? 0);
+  if (scoreDiff !== 0) return scoreDiff;
+  return (b.dateGroupModified ?? 0) - (a.dateGroupModified ?? 0);
 };
 
 // Collects every node for which predicate returns true, walking the whole tree.
