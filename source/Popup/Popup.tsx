@@ -47,9 +47,14 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const [saveDomainOnly, setSaveDomainOnly] = useState(false);
   const [resorted, setResorted] = useState(false); // resort after child check
   const [searchActive, setSearchActive] = useState(false);
+  // Announced to screen readers when the result set or save mode changes.
+  const [status, setStatus] = useState("");
 
   const focusedCategoryItem = useRef<HTMLDivElement | null>(null);
   const filterInput = useRef<HTMLInputElement | null>(null);
+
+  // Stable id referenced by the input's aria-activedescendant.
+  const optionId = (index: number) => `option-${index}`;
 
   // Lazy Fuse index, rebuilt whenever the folder list changes.
   const searchIndex = useMemo(
@@ -132,6 +137,21 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
     }
   }, []);
 
+  // Announce to screen readers when the visible result set or save mode
+  // changes, since keyboard focus stays on the search input.
+  useEffect(() => {
+    if (searchActive && filterInput.current?.value) {
+      const count = categoryNodes.length;
+      setStatus(`${count} result${count === 1 ? "" : "s"} found`);
+      return;
+    }
+    if (saveDomainOnly) {
+      setStatus("Domain only mode on");
+      return;
+    }
+    setStatus("");
+  }, [searchActive, categoryNodes, saveDomainOnly]);
+
   useEffect(() => {
     initBookmarkNodes();
   }, [initBookmarkNodes]);
@@ -172,6 +192,14 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
         id="search"
         ref={filterInput}
         placeholder="Filter ..."
+        role="combobox"
+        aria-label="Filter bookmarks"
+        aria-expanded="true"
+        aria-controls="wrapper"
+        aria-autocomplete="list"
+        aria-activedescendant={
+          categoryNodes.length > 0 ? optionId(cursor) : undefined
+        }
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
         onChange={onInputChange}
@@ -179,7 +207,7 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
         onBlur={({ target }) => target.focus()}
         autoFocus={true}
       ></input>
-      <div id="wrapper">
+      <div id="wrapper" role="listbox" aria-label="Bookmark folders">
         {visibleNodes.map((node, visibleIndex) => {
           const index = startIndex + visibleIndex;
           return (
@@ -190,6 +218,7 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
               key={`${node.id}-${node.parentId}-${
                 isNewFolderNode(node) ? (node.path?.join("/") ?? "") : ""
               }`}
+              optionId={optionId(index)}
               focused={cursor === index}
               resortCategoryNodes={resortCategoryNodes}
               isLast={index === categoryNodes.length - 1}
@@ -199,6 +228,9 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
             />
           );
         })}
+      </div>
+      <div id="status" role="status" aria-live="polite" className="sr-only">
+        {status}
       </div>
     </section>
   );

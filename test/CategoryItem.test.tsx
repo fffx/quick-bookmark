@@ -19,6 +19,7 @@ describe("CategoryItem Component", () => {
     isLast: false,
     resorted: false,
     saveDomainOnly: false,
+    optionId: "option-0",
   };
 
   beforeEach(() => {
