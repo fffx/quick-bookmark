@@ -230,6 +230,97 @@ describe("Popup Component", () => {
     });
   });
 
+  it("should expose the ARIA combobox/listbox pattern to screen readers", async () => {
+    const { container } = render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText("Filter ...");
+    expect(input).toHaveAttribute("role", "combobox");
+    expect(input).toHaveAttribute("aria-controls", "wrapper");
+    expect(input).toHaveAttribute("aria-expanded", "true");
+    expect(input).toHaveAttribute("aria-label", "Filter bookmarks");
+
+    const listbox = screen.getByRole("listbox", {
+      name: "Bookmark folders",
+    });
+    expect(listbox).toBeInTheDocument();
+
+    // The focused (first) option is referenced by aria-activedescendant
+    expect(input.getAttribute("aria-activedescendant")).toMatch(/^option-\d+$/);
+
+    const options = screen.getAllByRole("option");
+    expect(options.length).toBeGreaterThan(0);
+    // Exactly one option is selected at a time
+    expect(
+      options.filter((o) => o.getAttribute("aria-selected") === "true"),
+    ).toHaveLength(1);
+
+    // Options carry a spoken description of the action they perform
+    const focusedOption = document.getElementById(
+      input.getAttribute("aria-activedescendant")!,
+    );
+    // Development contains the current tab (GitHub), so it offers removal
+    const label = focusedOption?.getAttribute("aria-label") ?? "";
+    expect(label).toMatch(/Development/);
+    expect(label).toMatch(
+      /(Bookmark current tab to|Remove current tab bookmark from)/,
+    );
+    expect(container.querySelector(".sr-only")).not.toBeNull();
+  });
+
+  it("should update aria-activedescendant when the cursor moves", async () => {
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText("Filter ...");
+    const firstId = input.getAttribute("aria-activedescendant");
+
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input.getAttribute("aria-activedescendant")).not.toBe(firstId);
+    expect(input.getAttribute("aria-activedescendant")).toMatch(/^option-\d+$/);
+  });
+
+  it("should announce search results in a live region", async () => {
+    const user = userEvent.setup();
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText("Filter ...");
+    await user.type(input, "Dev");
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("status").textContent?.match(/\d+ result(s)? found/),
+      ).toBeTruthy();
+    });
+  });
+
+  it("should announce domain-only mode in a live region", async () => {
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Development/)).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText("Filter ...");
+    fireEvent.keyDown(input, { key: "Alt", altKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toContain(
+        "Domain only mode on",
+      );
+    });
+  });
+
   it("should not match Chinese folder by pinyin for non-Chinese users", async () => {
     Object.defineProperty(navigator, "languages", {
       writable: true,

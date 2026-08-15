@@ -14,12 +14,13 @@ export interface CategoryItemProps {
   node: CategoryNode;
   focused: boolean;
   saveDomainOnly: boolean;
+  optionId: string;
 }
 
 export const CategoryItem = memo(
   forwardRef<HTMLDivElement, CategoryItemProps>(
     function CategoryItem(props, ref) {
-      const { node, focused, saveDomainOnly } = props;
+      const { node, focused, saveDomainOnly, optionId } = props;
 
       useEffect(() => {
         if (focused && ref && typeof ref === "object") {
@@ -104,7 +105,12 @@ export const CategoryItem = memo(
 
       const renderIcon = () => {
         const color = node.containsCurrentTab ? "red" : "inherit";
-        const iconProps = { color, size: "1.5em", className: "category-icon" };
+        const iconProps = {
+          color,
+          size: "1.5em",
+          className: "category-icon",
+          "aria-hidden": true,
+        };
         if (node.id === "NEW") {
           return <HiOutlineFolderAdd {...iconProps} />;
         }
@@ -149,9 +155,21 @@ export const CategoryItem = memo(
       const showSaveDomainOnly =
         saveDomainOnly && focused && !node.containsCurrentTab;
 
+      // Full spoken description for screen readers: the visible title plus the
+      // action the row performs (aria-label replaces the read-out text).
+      const ariaLabel = isNewFolderNode(node)
+        ? `Create new folder ${node.title} under ${node.parentTitle} and bookmark the current tab to it`
+        : node.containsCurrentTab
+          ? `Remove current tab bookmark from ${fullTitle(node)}. Contains ${count} bookmark${count === 1 ? "" : "s"}`
+          : `Bookmark current tab to ${fullTitle(node)}. Contains ${count} bookmark${count === 1 ? "" : "s"}`;
+
       return (
         <div
           ref={ref}
+          id={optionId}
+          role="option"
+          aria-selected={focused}
+          aria-label={ariaLabel}
           data-id={`${id}-${title}`}
           title={hintTitle}
           data-count={count}

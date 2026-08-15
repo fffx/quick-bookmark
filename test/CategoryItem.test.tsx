@@ -16,6 +16,7 @@ describe("CategoryItem Component", () => {
     node: mockNode,
     focused: false,
     saveDomainOnly: false,
+    optionId: "option-0",
   };
 
   beforeEach(() => {
