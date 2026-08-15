@@ -11,7 +11,11 @@ import Pinyin from "tiny-pinyin";
 import { CategoryItem } from "./CategoryItem";
 import FuseIndex from "./searchEngine";
 import { loadBookmarkFolders } from "./loadBookmarks";
-import { buildSearchResults, getVisibleWindow } from "./searchQuery";
+import {
+  buildSearchResults,
+  getVisibleWindow,
+  isNewFolderNode,
+} from "./searchQuery";
 import type { CategoryNode } from "./searchQuery";
 import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { debounce } from "../lib/debounce";
@@ -42,6 +46,7 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const [cursor, setCursor] = useState(0);
   const [saveDomainOnly, setSaveDomainOnly] = useState(false);
   const [resorted, setResorted] = useState(false); // resort after child check
+  const [searchActive, setSearchActive] = useState(false);
 
   const focusedCategoryItem = useRef<HTMLDivElement | null>(null);
   const filterInput = useRef<HTMLInputElement | null>(null);
@@ -65,9 +70,11 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const handleSearchInput = useCallback(
     (text: string) => {
       if (!text) {
+        setSearchActive(false);
         initBookmarkNodes();
         return;
       }
+      setSearchActive(true);
       const { categoryNodes, cursor } = buildSearchResults(text, {
         rootNodes,
         search: searchIndex,
@@ -92,9 +99,12 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   }, []);
 
   const resortCategoryNodes = useCallback(() => {
+    // Search results are already Fuse-ranked; re-sorting them (e.g. bubbling
+    // the current-tab folder to the front) would move focus off the best match.
+    if (searchActive) return;
     setResorted(true);
     setCategoryNodes((nodes) => [...nodes].sort(sortNodes));
-  }, []);
+  }, [searchActive]);
 
   // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
   const onKeyDown = useCallback(
@@ -125,6 +135,23 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   useEffect(() => {
     initBookmarkNodes();
   }, [initBookmarkNodes]);
+
+  // Re-apply the search once the folder list has loaded, in case the user
+  // typed before the bookmarks (and thus the search index) were ready. The
+  // search index is rebuilt when allFolderNodes changes.
+  useEffect(() => {
+    const text = filterInput.current?.value ?? "";
+    if (text) {
+      setSearchActive(true);
+      const { categoryNodes, cursor } = buildSearchResults(text, {
+        rootNodes,
+        search: searchIndex,
+      });
+      setCategoryNodes(categoryNodes);
+      setCursor(cursor);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allFolderNodes]);
 
   useEffect(() => {
     const focusSearchInput = () => filterInput.current?.focus();
@@ -158,7 +185,11 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
           return (
             <CategoryItem
               node={node}
-              key={`${node.id}-${node.parentId}`}
+              // A path search offers a nested and a flat NEW option under the
+              // same root; include the nested path so their keys stay unique.
+              key={`${node.id}-${node.parentId}-${
+                isNewFolderNode(node) ? (node.path?.join("/") ?? "") : ""
+              }`}
               focused={cursor === index}
               resortCategoryNodes={resortCategoryNodes}
               isLast={index === categoryNodes.length - 1}

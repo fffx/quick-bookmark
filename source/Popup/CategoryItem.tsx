@@ -52,6 +52,23 @@ export const CategoryItem = forwardRef<HTMLDivElement, CategoryItemProps>(
       });
     };
 
+    // Creates each path segment as a nested folder and resolves to the
+    // deepest one, which the current tab is then bookmarked into.
+    const createNestedFolders = async (
+      segments: string[],
+      parentId: string,
+    ): Promise<Browser.Bookmarks.BookmarkTreeNode> => {
+      let currentParentId = parentId;
+      for (const segment of segments) {
+        const created = await browser.bookmarks.create({
+          title: segment,
+          parentId: currentParentId,
+        });
+        currentParentId = created.id;
+      }
+      return { id: currentParentId, title: "", children: [] };
+    };
+
     const processBookmark = (
       targetNode?: Browser.Bookmarks.BookmarkTreeNode,
     ) => {
@@ -85,12 +102,16 @@ export const CategoryItem = forwardRef<HTMLDivElement, CategoryItemProps>(
 
     const clickHandler = () => {
       if (isNewFolderNode(node)) {
-        browser.bookmarks
-          .create({
-            title: node.title,
-            parentId: node.parentId,
-          })
-          .then(processBookmark);
+        if (node.path && node.path.length > 1) {
+          createNestedFolders(node.path, node.parentId).then(processBookmark);
+        } else {
+          browser.bookmarks
+            .create({
+              title: node.title,
+              parentId: node.parentId,
+            })
+            .then(processBookmark);
+        }
       } else {
         processBookmark();
       }
@@ -150,6 +171,7 @@ export const CategoryItem = forwardRef<HTMLDivElement, CategoryItemProps>(
         title={hintTitle}
         data-count={count}
         data-title={title}
+        data-path={isNewFolderNode(node) ? node.path?.join("/") : undefined}
         className={classNames.join(" ")}
         onClick={clickHandler}
       >

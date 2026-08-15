@@ -1,5 +1,6 @@
 import { fullTitle } from "../lib/tree";
 import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
+import { SEPARATOR } from "../lib/constants";
 import type FuseIndex from "./searchEngine";
 import type { SearchNode } from "./searchEngine";
 
@@ -13,6 +14,10 @@ export interface NewFolderNode {
   children: never[];
   titlePrefix?: string | null;
   containsCurrentTab?: boolean;
+  // When set, creates these folders in order (last is deepest) instead of a
+  // single folder named `title`. Used to build a missing path like
+  // "frontend / book" as nested folders.
+  path?: string[];
 }
 
 export type CategoryNode = FolderNode | NewFolderNode;
@@ -30,6 +35,19 @@ const createNewFolderButton = (
   id: "NEW",
   parentTitle: fullTitle(parentNode),
   parentId: parentNode.id,
+  children: [],
+});
+
+const createPathNewFolderButton = (
+  title: string,
+  parentNode: SearchNode,
+  path: string[],
+): NewFolderNode => ({
+  title,
+  id: "NEW",
+  parentTitle: fullTitle(parentNode),
+  parentId: parentNode.id,
+  path,
   children: [],
 });
 
@@ -113,11 +131,21 @@ export const buildSearchResults = (
   if (isPathSearch) {
     // Limit to top 5 parent matches for performance
     const parentMatches = search.search(parentPath).slice(0, 5);
-    const targets =
-      parentMatches.length > 0 ? parentMatches : filteredNodes.slice(0, 5);
-    targets.forEach((x) => {
-      newBtns.push(createNewFolderButton(lastPart!, x));
-    });
+    if (parentMatches.length > 0) {
+      parentMatches.forEach((x) => {
+        newBtns.push(createNewFolderButton(lastPart!, x));
+      });
+    } else {
+      // The parent folder doesn't exist. Offer to create the whole path under
+      // each root folder, either as nested folders ("frontend" then "book")
+      // or as a single flat folder named "frontend / book".
+      const segments = [...texts, lastPart!];
+      const fullPath = segments.join(SEPARATOR);
+      rootNodes.forEach((x) => {
+        newBtns.push(createPathNewFolderButton(fullPath, x, segments));
+        newBtns.push(createNewFolderButton(fullPath, x));
+      });
+    }
   } else {
     // Also offer to create the full search text under root folders
     rootNodes.forEach((x) => {
