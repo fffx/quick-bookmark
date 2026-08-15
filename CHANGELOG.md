@@ -1,4 +1,27 @@
 # Change Log
+## [v1.5.0] - 2026-08-15
+### Added
+- Convert project to TypeScript
+- Add ARIA support for screen reader users
+- Suggest folders by URL keywords when current tab is unsaved
+- Show filled star when url existed
+- Add specs and unit tests (search, background, keyboard nav, bookmark actions, Firefox E2E)
+- Add configurable performance test with flag toggles and regression budget in CI
+- Support Firefox (MV3 manifest fix, folder hierarchy, containsCurrentTab fixes)
+### Changed
+- Upgrade to React 19, Fuse 7
+- Optimize popup rendering and filtering performance
+- Enable pinyin only when available in user's navigator
+- Update minimum Chrome version to 88
+### Fixed
+- Fix sort, recursive filtering, create sub folder, save domain, search focus
+- Add path create options
+- Scroll immediately
+
+## [v1.4.0] - 2026-08-15
+### Added
+- Suggest folders by URL keywords when current tab is unsaved
+
 ## [v1.3.8] - 2021-01-12
 ### Added
 - Create folder at the top of the list.

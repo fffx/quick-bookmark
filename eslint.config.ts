@@ -22,15 +22,16 @@ export default [
 
   js.configs.recommended,
 
-  // Playwright E2E scripts (Node ESM)
+  // Node ESM scripts (Playwright E2E + publish tooling)
   {
-    files: ["e2e/**/*.mjs"],
+    files: ["e2e/**/*.mjs", "scripts/**/*.mjs"],
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: 2022,
       sourceType: "module",
       globals: {
         process: "readonly",
         console: "readonly",
+        fetch: "readonly",
       },
     },
   },
