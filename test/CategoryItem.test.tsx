@@ -15,9 +15,6 @@ describe("CategoryItem Component", () => {
   const mockProps: CategoryItemProps = {
     node: mockNode,
     focused: false,
-    resortCategoryNodes: vi.fn(),
-    isLast: false,
-    resorted: false,
     saveDomainOnly: false,
   };
 

@@ -53,6 +53,7 @@ const config: Configuration = {
   output: {
     path: path.join(destPath, targetBrowser),
     filename: "js/[name].bundle.js",
+    chunkFilename: "js/[id].chunk.js",
   },
 
   resolve: {

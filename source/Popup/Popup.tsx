@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import browser from "webextension-polyfill";
-import Pinyin from "tiny-pinyin";
 import { CategoryItem } from "./CategoryItem";
 import FuseIndex from "./searchEngine";
 import { loadBookmarkFolders } from "./loadBookmarks";
@@ -19,17 +18,19 @@ import {
 import type { CategoryNode } from "./searchQuery";
 import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { debounce } from "../lib/debounce";
-import { sortNodes } from "../lib/tree";
 
 import "./styles.scss";
 
-// Only enable Pinyin if Chinese is in the user's preferred languages.
-const detectPinyinSupport = (): boolean => {
+// Synchronous part of pinyin support detection: false when the user has no
+// Chinese locale preference, null when tiny-pinyin must be loaded to finish
+// the isSupported() check. Keeping the import off the critical path keeps the
+// popup bundle small for non-Chinese users.
+const needsPinyinCheck = (): boolean | null => {
   const userLanguages = navigator.languages || [navigator.language];
   const isChinesePreferred = userLanguages.some((lang) =>
     lang.toLowerCase().startsWith("zh"),
   );
-  return isChinesePreferred && Pinyin.isSupported();
+  return isChinesePreferred ? null : false;
 };
 
 export interface PopupProps {
@@ -37,7 +38,10 @@ export interface PopupProps {
 }
 
 export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
-  const [isSupportPinyin] = useState(detectPinyinSupport);
+  // null while tiny-pinyin is being loaded for the isSupported() check.
+  const [isSupportPinyin, setIsSupportPinyin] = useState<boolean | null>(
+    needsPinyinCheck,
+  );
   // Complete, sorted folder list. Used to build the search index.
   const [allFolderNodes, setAllFolderNodes] = useState<FolderNode[]>([]);
   // Currently displayed items (full list or search results).
@@ -45,19 +49,30 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const [rootNodes, setRootNodes] = useState<BookmarkTreeNode[]>([]);
   const [cursor, setCursor] = useState(0);
   const [saveDomainOnly, setSaveDomainOnly] = useState(false);
-  const [resorted, setResorted] = useState(false); // resort after child check
-  const [searchActive, setSearchActive] = useState(false);
 
   const focusedCategoryItem = useRef<HTMLDivElement | null>(null);
   const filterInput = useRef<HTMLInputElement | null>(null);
 
   // Lazy Fuse index, rebuilt whenever the folder list changes.
   const searchIndex = useMemo(
-    () => new FuseIndex(allFolderNodes, isSupportPinyin),
+    () => new FuseIndex(allFolderNodes, isSupportPinyin === true),
     [allFolderNodes, isSupportPinyin],
   );
 
+  // Finish the pinyin check by loading tiny-pinyin on demand (Chinese users).
+  useEffect(() => {
+    if (isSupportPinyin !== null) return;
+    let cancelled = false;
+    import("tiny-pinyin").then(({ default: Pinyin }) => {
+      if (!cancelled) setIsSupportPinyin(Pinyin.isSupported());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isSupportPinyin]);
+
   const initBookmarkNodes = useCallback(async () => {
+    if (isSupportPinyin === null) return;
     const { folderNodes, rootNodes } = await loadBookmarkFolders({
       isSupportPinyin,
     });
@@ -70,11 +85,9 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   const handleSearchInput = useCallback(
     (text: string) => {
       if (!text) {
-        setSearchActive(false);
         initBookmarkNodes();
         return;
       }
-      setSearchActive(true);
       const { categoryNodes, cursor } = buildSearchResults(text, {
         rootNodes,
         search: searchIndex,
@@ -91,20 +104,12 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
     handleSearchInputRef.current = handleSearchInput;
   }, [handleSearchInput]);
   const onSearchInput = useRef(
-    debounce((text: string) => handleSearchInputRef.current(text), 150),
+    debounce((text: string) => handleSearchInputRef.current(text), 80),
   );
 
   const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     onSearchInput.current(e.target.value);
   }, []);
-
-  const resortCategoryNodes = useCallback(() => {
-    // Search results are already Fuse-ranked; re-sorting them (e.g. bubbling
-    // the current-tab folder to the front) would move focus off the best match.
-    if (searchActive) return;
-    setResorted(true);
-    setCategoryNodes((nodes) => [...nodes].sort(sortNodes));
-  }, [searchActive]);
 
   // https://stackoverflow.com/questions/42036865/react-how-to-navigate-through-list-by-arrow-keys
   const onKeyDown = useCallback(
@@ -142,7 +147,6 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
   useEffect(() => {
     const text = filterInput.current?.value ?? "";
     if (text) {
-      setSearchActive(true);
       const { categoryNodes, cursor } = buildSearchResults(text, {
         rootNodes,
         search: searchIndex,
@@ -191,9 +195,6 @@ export default function Popup({ maxVisibleItems = 50 }: PopupProps) {
                 isNewFolderNode(node) ? (node.path?.join("/") ?? "") : ""
               }`}
               focused={cursor === index}
-              resortCategoryNodes={resortCategoryNodes}
-              isLast={index === categoryNodes.length - 1}
-              resorted={resorted}
               saveDomainOnly={saveDomainOnly}
               ref={cursor === index ? focusedCategoryItem : null}
             />

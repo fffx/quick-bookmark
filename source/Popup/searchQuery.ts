@@ -53,14 +53,13 @@ const createPathNewFolderButton = (
 
 // True when the typed path (e.g. "foo / bar") matches an existing folder
 // plus one of its children, so the search should select it rather than
-// offering to create a new one.
+// offering to create a new one. Takes the already-computed parent matches.
 const hasExactPathMatch = (
-  search: FuseIndex,
+  parentMatches: SearchNode[],
   parentPath: string,
   lastPart: string,
   filteredNodes: SearchNode[],
 ): boolean => {
-  const parentMatches = search.search(parentPath);
   if (parentMatches.length === 0 || parentMatches[0].title !== parentPath) {
     return false;
   }
@@ -110,6 +109,9 @@ export const buildSearchResults = (
   }
 
   const filteredNodes = search.search(text);
+  // Parent-path matches are shared between the exact-child-path check below
+  // and the create options further down, so search only once.
+  const parentMatches = isPathSearch ? search.search(parentPath) : [];
 
   // Check if we have an exact match for the full search text
   const hasExactMatch =
@@ -118,7 +120,7 @@ export const buildSearchResults = (
   // For path searches, check if we have an exact match for the child in the parent
   const hasExactChildMatch =
     isPathSearch &&
-    hasExactPathMatch(search, parentPath, lastPart!, filteredNodes);
+    hasExactPathMatch(parentMatches, parentPath, lastPart!, filteredNodes);
 
   if (hasExactMatch || hasExactChildMatch) {
     return { categoryNodes: filteredNodes, cursor: 0 };
@@ -130,9 +132,9 @@ export const buildSearchResults = (
   // matching "foo" and offer to create "bar" inside them.
   if (isPathSearch) {
     // Limit to top 5 parent matches for performance
-    const parentMatches = search.search(parentPath).slice(0, 5);
-    if (parentMatches.length > 0) {
-      parentMatches.forEach((x) => {
+    const topParentMatches = parentMatches.slice(0, 5);
+    if (topParentMatches.length > 0) {
+      topParentMatches.forEach((x) => {
         newBtns.push(createNewFolderButton(lastPart!, x));
       });
     } else {

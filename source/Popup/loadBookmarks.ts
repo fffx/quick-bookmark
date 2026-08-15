@@ -1,6 +1,5 @@
 import browser from "webextension-polyfill";
 import type Browser from "webextension-polyfill";
-import Pinyin from "tiny-pinyin";
 import { filterRecursively, sortNodes } from "../lib/tree";
 import type { BookmarkTreeNode, FolderNode } from "../lib/tree";
 import { getBrowserName, getCurrentTab } from "../lib/browser";
@@ -8,16 +7,23 @@ import { removeHashtag } from "../lib/url";
 
 // A folder is a bookmark node without a url. Chrome/Opera/Edge assign
 // numeric ids, Firefox does not, so the browser-specific check differs.
-const isFolder = (node: BookmarkTreeNode): boolean => {
+const isFolder = (node: FolderNode): boolean => {
   if (getBrowserName() === "firefox") {
     return !node.url && Boolean(node.title);
   }
   return !node.url && Number(node.id) > 0;
 };
 
-const addPinyin = (node: FolderNode): void => {
+const addPinyin = (
+  node: FolderNode,
+  convertToPinyin: (
+    text: string,
+    separator: string,
+    lowerCase: boolean,
+  ) => string,
+): void => {
   node.pinyinTitle = /[\u3400-\u9FBF]/.test(node.title)
-    ? Pinyin.convertToPinyin(node.title, " ", true)
+    ? convertToPinyin(node.title, " ", true)
     : node.title;
 };
 
@@ -65,15 +71,18 @@ export async function loadBookmarkFolders({
 }: {
   isSupportPinyin: boolean;
 }): Promise<LoadedBookmarks> {
-  const [bookmarkItems, currentTab] = await Promise.all([
+  const [bookmarkItems, currentTab, pinyinModule] = await Promise.all([
     browser.bookmarks.getTree(),
     getCurrentTab().catch(() => null), // Don't fail if tab query fails
+    // Loaded on demand: only Chinese users need the pinyin dictionary.
+    isSupportPinyin ? import("tiny-pinyin") : null,
   ]);
 
   const folderNodes = filterRecursively(bookmarkItems, null, isFolder);
 
-  if (isSupportPinyin) {
-    folderNodes.forEach(addPinyin);
+  if (pinyinModule) {
+    const convertToPinyin = pinyinModule.default.convertToPinyin;
+    folderNodes.forEach((node) => addPinyin(node, convertToPinyin));
   }
 
   const urlMap = buildUrlMap(folderNodes, currentTab);
