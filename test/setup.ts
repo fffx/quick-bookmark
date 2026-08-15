@@ -7,6 +7,7 @@ import type { MockBrowser } from "./globals";
 const browser: MockBrowser = {
   action: {
     setBadgeText: vi.fn(),
+    setIcon: vi.fn(),
   },
   bookmarks: {
     getTree: vi.fn(),

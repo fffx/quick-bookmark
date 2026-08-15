@@ -5,14 +5,28 @@ import { isSameBookmarkUrl } from "../lib/url";
 import { collectMatchingNodes } from "../lib/tree";
 import type { BookmarkTreeNode } from "../lib/tree";
 
+const iconPath = (name: string) =>
+  browser.runtime.getURL(`assets/icons/${name}`);
+
 function updateBadge(
   tab: Browser.Tabs.Tab,
   bookmarks: BookmarkTreeNode[],
 ): void {
-  const text = bookmarks.length > 0 ? `${bookmarks.length}` : "";
+  const bookmarked = bookmarks.length > 0;
   browser.action.setBadgeText({
     tabId: tab.id,
-    text: text,
+    text: bookmarked ? `${bookmarks.length}` : "",
+  });
+  browser.action.setIcon({
+    tabId: tab.id,
+    path: {
+      16: iconPath(bookmarked ? "bookmark-filled-16.png" : "bookmark-16.png"),
+      32: iconPath(bookmarked ? "bookmark-filled-32.png" : "bookmark-32.png"),
+      48: iconPath(bookmarked ? "bookmark-filled-48.png" : "bookmark-48.png"),
+      128: iconPath(
+        bookmarked ? "bookmark-filled-128.png" : "bookmark-128.png",
+      ),
+    },
   });
 }
 

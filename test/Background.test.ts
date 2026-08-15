@@ -65,6 +65,15 @@ describe("Background service worker", () => {
         tabId: 7,
         text: "1",
       });
+      expect(global.browser.action.setIcon).toHaveBeenCalledWith({
+        tabId: 7,
+        path: {
+          16: "chrome-extension://test/assets/icons/bookmark-filled-16.png",
+          32: "chrome-extension://test/assets/icons/bookmark-filled-32.png",
+          48: "chrome-extension://test/assets/icons/bookmark-filled-48.png",
+          128: "chrome-extension://test/assets/icons/bookmark-filled-128.png",
+        },
+      });
     });
   });
 
@@ -82,6 +91,15 @@ describe("Background service worker", () => {
       expect(global.browser.action.setBadgeText).toHaveBeenCalledWith({
         tabId: 7,
         text: "",
+      });
+      expect(global.browser.action.setIcon).toHaveBeenCalledWith({
+        tabId: 7,
+        path: {
+          16: "chrome-extension://test/assets/icons/bookmark-16.png",
+          32: "chrome-extension://test/assets/icons/bookmark-32.png",
+          48: "chrome-extension://test/assets/icons/bookmark-48.png",
+          128: "chrome-extension://test/assets/icons/bookmark-128.png",
+        },
       });
     });
   });

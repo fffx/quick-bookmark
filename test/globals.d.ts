@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 export interface MockBrowser {
   action: {
     setBadgeText: Mock;
+    setIcon: Mock;
   };
   bookmarks: {
     getTree: Mock;
