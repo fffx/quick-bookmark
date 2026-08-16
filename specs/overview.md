@@ -19,7 +19,7 @@ with full mouse and keyboard support, including Chinese pinyin search.
 | Browser | Support | Notes |
 | --- | --- | --- |
 | Chrome | Yes | minimum Chrome 88; background runs as a service worker |
-| Firefox | Yes | stable gecko id `{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}`; background runs as a persistent script |
+| Firefox | Yes | stable gecko id `{BE7CE6AD-AE07-4D04-A8DF-A2DA5044FE03}`; background runs as a persistent script |
 | Opera | Yes | minimum Opera 36; packaged as `.crx` |
 | Edge | Yes (build target) | shares the Chrome service-worker manifest flavor |
 

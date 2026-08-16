@@ -3,7 +3,7 @@ import { EXTENSION_PATH } from './firefox-fixture.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const GECKO_ID = '{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}';
+const GECKO_ID = '{BE7CE6AD-AE07-4D04-A8DF-A2DA5044FE03}';
 
 test.describe('Quick Bookmark in real Firefox', () => {
   test('extension installs with the stable gecko id (no temporary add-on id)', async ({

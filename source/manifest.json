@@ -1,7 +1,6 @@
 {
   "manifest_version": 3,
   "name": "Quick Bookmark",
-  "__firefox__name": "Quick Bookmark Firefox",
   "version": "1.6.0",
 
   "icons": {
@@ -14,7 +13,6 @@
   "__firefox__description": "Easily add bookmarks to any category. Includes spotlight-like search with mouse/keyboard support. Default key: option+b (win:ctrl+b)",
   "homepage_url": "https://github.com/fffx/quick-bookmark",
   "short_name": "Quick Bookmark",
-  "__firefox__short_name": "Quick Bookmark Firefox",
 
   "permissions": [
     "bookmarks",
@@ -32,7 +30,7 @@
 
   "__firefox__browser_specific_settings": {
     "gecko": {
-      "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}",
+      "id": "{BE7CE6AD-AE07-4D04-A8DF-A2DA5044FE03}",
       "data_collection_permissions": {
         "required": ["none"],
         "optional": []

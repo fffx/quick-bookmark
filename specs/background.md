@@ -33,7 +33,7 @@ each tab's own count.
 - Chrome/Opera/Edge: runs as an MV3 **service worker**
   (`background.service_worker`); listeners must stay top-level (they are).
 - Firefox: runs as a **background script** (`background.scripts`) under the
-  stable gecko id `{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}`.
+  stable gecko id `{BE7CE6AD-AE07-4D04-A8DF-A2DA5044FE03}`.
 - Imports `emoji-log` for debug logging side effects; errors from the
   bookmark/tab queries are unhandled promise rejections by design (the badge
   simply stays stale until the next event).
