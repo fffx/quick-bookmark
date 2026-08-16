@@ -140,6 +140,12 @@ describe("Firefox manifest generation", () => {
     expect(firefoxManifest.background.service_worker).toBeUndefined();
   });
 
+  it("uses a Firefox-specific name so it is not duplicated on AMO", () => {
+    expect(firefoxManifest.name).toBe("Quick Bookmark Firefox");
+    const chromeManifest = transformer(manifestJson, "chrome", "production");
+    expect(chromeManifest.name).toBe("Quick Bookmark");
+  });
+
   it("includes the Firefox gecko application id in browser_specific_settings", () => {
     expect(firefoxManifest.browser_specific_settings.gecko).toEqual({
       id: "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}",

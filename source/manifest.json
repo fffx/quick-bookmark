@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Quick Bookmark",
+  "__firefox__name": "Quick Bookmark Firefox",
   "version": "1.6.0",
 
   "icons": {
