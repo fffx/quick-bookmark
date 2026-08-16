@@ -32,6 +32,39 @@ sourcemaps, copy `source/assets` → `assets/`, render `popup.html` /
 `options.html` from `views/`, and zip the folder (`zip`/`xpi`/`crx` by
 target) via filemanager-webpack-plugin.
 
+## Publishing to the Chrome Web Store
+
+Build and publish from the command line with a Google Cloud
+[service account](https://developer.chrome.com/docs/webstore/service-accounts):
+
+1. Enable the Chrome Web Store API in a Google Cloud project and create a
+   service account with a JSON key.
+2. Add the service account email to your Chrome Web Store Developer Dashboard
+   under **Account**.
+3. Export the required credentials:
+
+```sh
+export GOOGLE_SERVICE_ACCOUNT_KEY=/path/to/service-account-key.json
+export WEB_STORE_PUBLISHER_ID=your-publisher-id   # from Developer Dashboard > Publisher > Settings
+export WEB_STORE_EXTENSION_ID=bbjekmkfbdemdbfkckbakmmiceppjkdc
+```
+
+4. Publish:
+
+```sh
+yarn publish:chrome
+```
+
+This builds `extension/chrome.zip` then uploads and publishes it. Options:
+
+```sh
+yarn publish:chrome -- --no-publish                 # upload only
+yarn publish:chrome -- --target TRUSTED_TESTERS     # upload + publish to trusted testers
+yarn publish:chrome -- --zip /path/to/chrome.zip    # use an existing zip
+```
+
+You must bump the `version` in `source/manifest.json` for uploads to succeed.
+
 ## CI / Release (`.github/workflows/main.yml`)
 
 Triggers: push of a `v*` tag, or manual dispatch. Two jobs on
