@@ -4,10 +4,10 @@
   "version": "1.5.0",
 
   "icons": {
-    "16": "assets/icons/bookmark.png",
-    "32": "assets/icons/bookmark.png",
-    "48": "assets/icons/bookmark.png",
-    "128": "assets/icons/bookmark.png"
+    "16": "assets/icons/bookmark-16.png",
+    "32": "assets/icons/bookmark-32.png",
+    "48": "assets/icons/bookmark-48.png",
+    "128": "assets/icons/bookmark-128.png"
   },
   "description": "Easily add bookmarks to any category. Includes spotlight-like search with mouse/keyboard support. Default key: cmd+b (win:ctrl+b)",
   "homepage_url": "https://github.com/fffx/quick-bookmark",
@@ -29,7 +29,11 @@
 
   "__firefox__browser_specific_settings": {
     "gecko": {
-      "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}"
+      "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
     }
   },
 
@@ -39,10 +43,10 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "assets/icons/bookmark.png",
-      "32": "assets/icons/bookmark.png",
-      "48": "assets/icons/bookmark.png",
-      "128": "assets/icons/bookmark.png"
+      "16": "assets/icons/bookmark-16.png",
+      "32": "assets/icons/bookmark-32.png",
+      "48": "assets/icons/bookmark-48.png",
+      "128": "assets/icons/bookmark-128.png"
     },
     "default_title": "Quick Bookmark",
     "__chrome|opera__chrome_style": false,

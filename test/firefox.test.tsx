@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import fs from "node:fs";
 import transformer from "wext-manifest-transformer";
 import manifestJson from "../source/manifest.json";
 
@@ -142,6 +143,10 @@ describe("Firefox manifest generation", () => {
   it("includes the Firefox gecko application id in browser_specific_settings", () => {
     expect(firefoxManifest.browser_specific_settings.gecko).toEqual({
       id: "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}",
+      data_collection_permissions: {
+        required: ["none"],
+        optional: [],
+      },
     });
     // `applications` is unsupported in Manifest V3 (Firefox 109+) and must not
     // leak into the generated manifest.
@@ -162,4 +167,46 @@ describe("Firefox manifest generation", () => {
     expect(firefoxManifest.minimum_chrome_version).toBeUndefined();
     expect(firefoxManifest.action.chrome_style).toBeUndefined();
   });
+
+  it("declares data_collection_permissions (AMO requires it for all new extensions)", () => {
+    expect(
+      firefoxManifest.browser_specific_settings.gecko
+        .data_collection_permissions,
+    ).toEqual({
+      required: ["none"],
+      optional: [],
+    });
+  });
+});
+
+describe("Manifest icon sizes match the referenced files", () => {
+  const browsers = ["firefox", "chrome"] as const;
+
+  function readPngDimensions(filePath: string): [number, number] {
+    const buffer = fs.readFileSync(filePath);
+    // PNG signature (8 bytes) + IHDR length/type, then width/height (4-byte BE each).
+    expect(buffer.readUInt32BE(8)).toBe(13); // IHDR chunk length
+    expect(buffer.toString("latin1", 12, 16)).toBe("IHDR");
+    return [buffer.readUInt32BE(16), buffer.readUInt32BE(20)];
+  }
+
+  for (const browser of browsers) {
+    const manifest = transformer(manifestJson, browser, "production");
+
+    it(`(${browser}) icons and action.default_icon map each size to a file of that size`, () => {
+      const sections: Array<Record<string, string>> = [
+        manifest.icons,
+        manifest.action.default_icon,
+      ];
+      for (const icons of sections) {
+        for (const [sizeStr, relPath] of Object.entries(icons)) {
+          const [width, height] = readPngDimensions(
+            `${__dirname}/../source/${relPath}`,
+          );
+          expect(`${width}`).toBe(sizeStr);
+          expect(width).toBe(height);
+        }
+      }
+    });
+  }
 });
