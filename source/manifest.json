@@ -14,6 +14,7 @@
   "__firefox__description": "Easily add bookmarks to any category. Includes spotlight-like search with mouse/keyboard support. Default key: option+b (win:ctrl+b)",
   "homepage_url": "https://github.com/fffx/quick-bookmark",
   "short_name": "Quick Bookmark",
+  "__firefox__short_name": "Quick Bookmark Firefox",
 
   "permissions": [
     "bookmarks",

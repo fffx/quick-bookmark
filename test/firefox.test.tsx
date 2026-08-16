@@ -142,9 +142,11 @@ describe("Firefox manifest generation", () => {
 
   it("uses Firefox-specific name/description for AMO", () => {
     expect(firefoxManifest.name).toBe("Quick Bookmark Firefox");
+    expect(firefoxManifest.short_name).toBe("Quick Bookmark Firefox");
     expect(firefoxManifest.description).toContain("option+b");
     const chromeManifest = transformer(manifestJson, "chrome", "production");
     expect(chromeManifest.name).toBe("Quick Bookmark");
+    expect(chromeManifest.short_name).toBe("Quick Bookmark");
     expect(chromeManifest.description).toContain("cmd+b");
   });
 
