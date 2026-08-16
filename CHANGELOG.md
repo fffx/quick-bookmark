@@ -1,4 +1,9 @@
 # Change Log
+## [v1.6.0] - 2026-08-16
+### Fixed
+- Fix AMO manifest warnings: add required `data_collection_permissions` for Firefox and use correctly sized icons
+- Add regression tests for the manifest data-collection permission and icon dimensions
+
 ## [v1.5.0] - 2026-08-15
 ### Added
 - Convert project to TypeScript
